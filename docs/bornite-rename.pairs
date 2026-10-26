@@ -1,0 +1,33 @@
+# bornite rename pairs — herd -> bornite (local engine rebrand)
+#
+# Word: OLD => NEW (whole word \bOLD\b, case-sensitive)
+# substr: OLD => NEW (substring)
+#
+# Every substr/word rule auto-expands to UPPER and Capitalized variants.
+# Rules apply in file order. Exclusions are placeholder-armored first.
+
+# ---- code identifiers -------------------------------------------------------
+word: herd => bornite
+word: Herd => Bornite
+word: HERD => BORNITE
+
+# compound / path forms (substring — \b does not split on _ or -)
+substr: herd- => bornite-
+substr: herd_ => bornite_
+substr: .herd => .bornite
+substr: /herd => /bornite
+substr: HERD_ => BORNITE_
+substr: HERD- => BORNITE-
+
+# package / module names
+substr: github.com/mostlygeek/herd => github.com/toxicwind/bornite
+
+# ---- do NOT touch: these are OTHER things -----------------------------------
+exclude: BORNITE_PORT
+exclude: bornite-port
+exclude: HERD_POOL
+exclude: herd-pool
+
+# --- geode home redirects (2026-10-26 cutover) ------------------------------
+substr: pens/ranch/forge/router/bornite => pens/geode/products/bornite
+substr: engines/herd => engines/bornite
