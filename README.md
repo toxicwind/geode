@@ -12,6 +12,7 @@ is symlinked into `~/.local/bin` and pinned by the estate-ops manifest.
 | chalcopyrite | 25200 | TypeScript | Ex-canonical router (renamed from the atlas lineage); retained, superseded by rhodochrosite :25193 |
 | mimetite | — | TypeScript | Master provider catalog for the estate. One source of truth for every LLM |
 | rhodochrosite | 25193 | Rust | **The canonical live router** — one OpenAI-compatible endpoint across all cloud providers; per-model breakers + provider concurrency gates |
+| pseudobrookite | — | TypeScript | Prompt-forensics pseudocompiler: hyper-tiktoken scan, token-walking unpoisoned slice-workers, squawk-log shared state, narrator claims with provenance; ships the estate's save-all (meta-permanence) + green-blue + live-audit primitives, the `pseudobrookite-permanence` plugin and the `permanence-save-all` tau extension |
 
 ## Facts (generated — do not hand-edit)
 
