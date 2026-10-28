@@ -9,9 +9,16 @@ is symlinked into `~/.local/bin` and pinned by the estate-ops manifest.
 
 | Product | Port | Language | Role |
 | --- | --- | --- | --- |
-| chalcopyrite | 25200 | TypeScript | The canonical live router for the estate: one OpenAI-compatible endpoint fans requests across clo... |
+| chalcopyrite | 25200 | TypeScript | Ex-canonical router (renamed from the atlas lineage); retained, superseded by rhodochrosite :25193 |
 | mimetite | — | TypeScript | Master provider catalog for the estate. One source of truth for every LLM |
-| rhodochrosite | 25193 | Rust | — |
+| rhodochrosite | 25193 | Rust | **The canonical live router** — one OpenAI-compatible endpoint across all cloud providers; per-model breakers + provider concurrency gates |
+
+## Facts (generated — do not hand-edit)
+
+<!-- FACTS:START -->
+| rhodochrosite port | 25193 (ports.env, canonical router) |
+| gemini-mcp port | 25227 (ports.env GEMINI_MCP_PORT) |
+<!-- FACTS:END -->
 
 ## Layout
 ```text
