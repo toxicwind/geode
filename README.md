@@ -7,21 +7,24 @@ is symlinked into `~/.local/bin` and pinned by the estate-ops manifest.
 
 ## Products
 
-| Product | Port | Language | Role |
-| --- | --- | --- | --- |
-| chalcopyrite | 25200 | TypeScript | Ex-canonical router (renamed from the atlas lineage); retained, superseded by rhodochrosite :25193 |
-| mimetite | — | TypeScript | Master provider catalog for the estate. One source of truth for every LLM |
-| rhodochrosite | 25193 | Rust | **The canonical live router** — one OpenAI-compatible endpoint across all cloud providers; per-model breakers + provider concurrency gates |
-| pseudobrookite | — | TypeScript | Prompt-forensics pseudocompiler: hyper-tiktoken scan, token-walking unpoisoned slice-workers, squawk-log shared state, narrator claims with provenance; ships the estate's save-all (meta-permanence) + green-blue + live-audit primitives, the `pseudobrookite-permanence` plugin and the `permanence-save-all` tau extension |
+| Product        | Port  | Language         | Role                                                                                                                                                                                                                                                                                                                           |
+| -------------- | ----- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| chalcopyrite   | 25200 | TypeScript       | Ex-canonical router (renamed from the atlas lineage); retained, superseded by rhodochrosite :25193                                                                                                                                                                                                                             |
+| mimetite       | —     | TypeScript       | Master provider catalog for the estate. One source of truth for every LLM                                                                                                                                                                                                                                                      |
+| rhodochrosite  | 25193 | Rust             | **The canonical live router** — one OpenAI-compatible endpoint across all cloud providers; per-model breakers + provider concurrency gates                                                                                                                                                                                     |
+| pseudobrookite | —     | TypeScript       | Prompt-forensics pseudocompiler: hyper-tiktoken scan, token-walking unpoisoned slice-workers, squawk-log shared state, narrator claims with provenance; ships the estate's save-all (meta-permanence) + green-blue + live-audit primitives, the `pseudobrookite-permanence` plugin and the `permanence-save-all` tau extension |
+| malachite      | —     | TypeScript (Bun) | Flatten + audit anything — tau/kappa sqlite DBs, session JSONLs, report bundles (.tar.gz) → flat untruncated CSV/JSONL dataframes; audit verdicts: empty-output model calls, 402/429 error taxonomy, claim-vs-reality scan. Replaces the ad-hoc model-audit skill scripts                                                      |
 
 ## Facts (generated — do not hand-edit)
 
 <!-- FACTS:START -->
+
 | rhodochrosite port | 25193 (ports.env, canonical router) |
 | gemini-mcp port | 25227 (ports.env GEMINI_MCP_PORT) |
 <!-- FACTS:END -->
 
 ## Layout
+
 ```text
 geode/
   .gitignore    kitchen-sink `*` + whitelist (submoduleless doctrine)
@@ -38,10 +41,10 @@ geode/
 ## Tooling
 
 - **bin surface**: entrypoints symlinked into `~/.local/bin`, pinned by the
--  estate-ops manifest and verified by `bin-verify.sh`. A broken link is
--  a FAIL, never a WARN.
--  **README**: generated from the pen's own product set by
--  `bin/readme-gen.ts`.
+- estate-ops manifest and verified by `bin-verify.sh`. A broken link is
+- a FAIL, never a WARN.
+- **README**: generated from the pen's own product set by
+- `bin/readme-gen.ts`.
 
 ## Conventions
 
