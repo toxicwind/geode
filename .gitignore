@@ -9,6 +9,7 @@
 !LICENSE
 !package.json
 !mise.toml
+!pitchfork.toml
 !AGENTS.md
 !bin/
 !bin/**

@@ -1,0 +1,87 @@
+# Per-pen pitchfork config — partitioned from estate monolith 2026-10-29 (v2, sub-tables intact)
+# geode pen — product-owned daemon manifest (namespace: geode).
+# The mineral-family products own their lifecycle here, not in the estate
+# control plane: the pen is the inference plane (catalog, routers, engines).
+# Migrated from estate/pitchfork.toml 2026-10-26 during the geode rename.
+
+[daemons.chalcopyrite]
+run = "exec ./chalcopyrite-serve.sh"
+auto = ["start"]
+retry = true
+ready_http = "http://127.0.0.1:25200/health"
+port = 25200
+expected_port = [25200]
+dir = "/home/toxic/pens/geode/products/chalcopyrite"
+[daemons.chalcopyrite.health_http]
+url = "http://127.0.0.1:25200/health"
+interval = "30s"
+timeout = "5s"
+retries = 3
+[daemons.chalcopyrite.env]
+CHALCOPYRITE_PORT = "25200"
+CHALCOPYRITE_LOG_LEVEL = "info"
+
+[daemons.bornite]
+run = "exec /home/toxic/pens/estate/stack/services/bornite.sh"
+auto = ["start"]
+retry = true
+ready_http = "http://127.0.0.1:25100/health"
+port = 25100
+expected_port = [25100]
+depends = ["chalcopyrite"]
+dir = "/home/toxic/pens/estate"
+mise = true
+[daemons.bornite.health_http]
+url = "http://127.0.0.1:25100/health"
+interval = "30s"
+timeout = "5s"
+retries = 3
+
+[daemons.rhodochrosite]
+run = "exec ./serve.sh"
+auto = ["start"]
+retry = true
+ready_http = "http://127.0.0.1:25193/health"
+port = 25193
+expected_port = [25193]
+dir = "/home/toxic/pens/geode/products/rhodochrosite/proxy"
+mise = true
+[daemons.rhodochrosite.health_http]
+url = "http://127.0.0.1:25193/health"
+interval = "30s"
+timeout = "5s"
+retries = 3
+[daemons.rhodochrosite.env]
+PORT = "25193"
+DATA_DIR = "/home/toxic/.hodos-data"
+HOST = "127.0.0.1"
+
+[groups.mesh]
+daemons = ["chalcopyrite", "rhodochrosite", "bornite"]
+
+# Monolith copy dropped 2026-10-29 (partition): geode's own definition above is
+# live truth. mise = true note stands (anomaly #43 class): `mise x` exits 2 in
+# dirs without toolchain activation, killing the daemon pre-bind; serve.sh execs
+# an absolute release binary, so mise adds nothing here.
+# 2026-10-29: the former [daemons.rhodochrosite.monolith-note] sub-table was a
+# phantom daemon registration (pitchfork parsed it as a second daemon), and
+# `run` was `exec ./products/rhodochrosite/proxy/serve.sh` while `dir` already
+# pointed at the proxy — the doubled path `proxy/products/...` ENOENT'd every
+# start (exit 127). Fixed to `exec ./serve.sh`.
+
+[daemons.toolcall-llm]
+# 2026-10-27: the llama.cpp-b11059 build is stale against its own libs
+# (wants the pre-rename gml-base.so.0, and libllama.so.0 has an ABI
+# mismatch) so it exited 127. Use the beellama.cpp CUDA build.
+# The DFlash GGUF is a speculative DRAFT model (it refuses to load alone:
+# "dflash requires ctx_other to be set"), so serve the standard
+# Qwen3.5-9B Q5_K_M instead.
+run = "exec /home/toxic/pens/geode/products/bornite/engines/beellama.cpp/build-cuda86/bin/llama-server -m /home/toxic/pens/ranch/models/qwen3.5-9b-Q5_K_M.gguf --host 127.0.0.1 --port 25152 -ngl 99 -c 32768 --alias qwen3.5-9b-tool"
+auto = []
+retry = 5
+ready_http = "http://127.0.0.1:25152/health"
+port = 25152
+dir = "/home/toxic/pens/geode/products/bornite/engines/beellama.cpp/build-cuda86/bin"
+mise = true
+boot_start = false
+
