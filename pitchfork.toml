@@ -85,3 +85,15 @@ dir = "/home/toxic/pens/geode/products/bornite/engines/beellama.cpp/build-cuda86
 mise = true
 boot_start = false
 
+
+[daemons.pens-completions]
+run = "exec /home/toxic/.bun/bin/bun /home/toxic/pens/geode/products/pens-completions/server.ts"
+auto = ["start"]
+retry = true
+ready_http = "http://127.0.0.1:25252/health"
+port = 25252
+boot_start = true
+dir = "/home/toxic/pens/geode/products/pens-completions"
+[daemons.pens-completions.env]
+PENS_COMPLETIONS_PORT = "25252"
+RHODOCHROSITE_ORIGIN = "http://127.0.0.1:25193"
