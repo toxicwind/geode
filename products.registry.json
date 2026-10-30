@@ -1,0 +1,89 @@
+{
+  "products": {
+    "mimetite": {
+      "enabled": true,
+      "aliases": []
+    },
+    "chalcopyrite": {
+      "enabled": true,
+      "aliases": []
+    },
+    "rhodochrosite": {
+      "enabled": true,
+      "aliases": []
+    },
+    "bornite": {
+      "enabled": true,
+      "aliases": []
+    },
+    "azurite": {
+      "enabled": true,
+      "aliases": []
+    },
+    "pseudobrookite": {
+      "enabled": true,
+      "aliases": []
+    },
+    "malachite": {
+      "enabled": true,
+      "aliases": []
+    },
+    "pairs": {
+      "enabled": true,
+      "aliases": [
+        "lapidary"
+      ]
+    },
+    "pens-completions": {
+      "enabled": true,
+      "aliases": []
+    },
+    "estate-skills": {
+      "enabled": true,
+      "aliases": []
+    },
+    "pi-skills": {
+      "enabled": true,
+      "aliases": []
+    },
+    "triphylite": {
+      "enabled": true,
+      "aliases": []
+    },
+    "opal": {
+      "enabled": true,
+      "aliases": []
+    },
+    "forensia": {
+      "enabled": true,
+      "aliases": []
+    },
+    "faceter": {
+      "enabled": true,
+      "aliases": []
+    },
+    "lapidary": {
+      "enabled": true,
+      "aliases": [
+        "pairs",
+        "faceter"
+      ]
+    },
+    "scintillator": {
+      "enabled": true,
+      "aliases": []
+    },
+    "cleavage": {
+      "enabled": true,
+      "aliases": []
+    },
+    "infusion": {
+      "enabled": true,
+      "aliases": []
+    },
+    "trio": {
+      "enabled": true,
+      "aliases": []
+    }
+  }
+}

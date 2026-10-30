@@ -14,6 +14,7 @@ is symlinked into `~/.local/bin` and pinned by the estate-ops manifest.
 | rhodochrosite  | 25193 | Rust             | **The canonical live router** — one OpenAI-compatible endpoint across all cloud providers; per-model breakers + provider concurrency gates                                                                                                                                                                                     |
 | pseudobrookite | —     | TypeScript       | Prompt-forensics pseudocompiler: hyper-tiktoken scan, token-walking unpoisoned slice-workers, squawk-log shared state, narrator claims with provenance; ships the estate's save-all (meta-permanence) + green-blue + live-audit primitives, the `pseudobrookite-permanence` plugin and the `permanence-save-all` tau extension |
 | malachite      | —     | TypeScript (Bun) | Flatten + audit anything — tau/kappa sqlite DBs, session JSONLs, report bundles (.tar.gz) → flat untruncated CSV/JSONL dataframes; audit verdicts: empty-output model calls, 402/429 error taxonomy, claim-vs-reality scan. Replaces the ad-hoc model-audit skill scripts                                                      |
+| trio           | —     | TypeScript (Bun) | Persistent Bun notebook kernel — standalone productization of tau's most-evolved JS eval: cells with top-level state across runs, top-level `await`, stdio/socket protocol, per-session daemons. Replaces kappa's vscode-gated notebook host for terminal agents                                       |
 
 ## Facts (generated — do not hand-edit)
 
