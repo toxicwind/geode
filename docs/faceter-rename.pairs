@@ -1,0 +1,16 @@
+# geode rename: pairs -> faceter (deploy carver product)
+# 2026-10-30 — live cp of pens/geode/products/pairs to pens/geode/products/faceter
+# "faceter" = lapidary cutting machine; the geode carver as a machine.
+# Verb: "cut" — `bin faceter cut <repo> --release vN.N`.
+# Path-form only: pairs is a high-collision token (paired, key-pair, Pair<T>).
+
+substr: pens/geode/products/pairs -> pens/geode/products/faceter
+substr: geode/products/pairs -> geode/products/faceter
+substr: "products/pairs/" -> "products/faceter/"
+
+# Never rewrite bare "pairs"/"Pairs" — ordinary prose + --pairs CLI flag + .pairs convention files stay.
+# word: pairs -> faceter   # INTENTIONALLY OUT — see pairs→dediops high-collision rules
+
+exclude: --pairs
+exclude: pairs-file
+exclude: rename.pairs
