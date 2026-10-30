@@ -108,4 +108,34 @@ describe("TrioKernel output helper equal to display", () => {
     expect(result.ok).toBe(true);
     expect(result.value).toBe(undefined);
   });
+
+	describe("host integration (TDD 2026-10-30)", () => {
+		test("supports dynamic import inside cells (node: modules)", async () => {
+			const kernel = new TrioKernel({ name: "dynimport" });
+			const r = await kernel.run("const os = await import('node:os'); os.platform().length > 0 ? 'platform-ok' : 'none'");
+			expect(r.ok, r.error ?? r.text).toBe(true);
+			expect(r.value).toBe("platform-ok");
+			const r2 = await kernel.run("typeof os.EOL") // EOL survives? no: block scope — but import fn check
+				;
+			expect(r2.ok, r2.error ?? r2.text).toBe(true);
+		});
+
+		test("supports top-level interplay: dynamic import result persists to next cell", async () => {
+			const kernel = new TrioKernel({ name: "dynpersist" });
+			const r1 = await kernel.run("const { tmpdir } = await import('node:os'); tmpdir().length > 0");
+			expect(r1.ok, r1.error ?? r1.text).toBe(true);
+			expect(r1.value).toBe(true);
+			const r2 = await kernel.run("typeof tmpdir");
+			expect(r2.ok, r2.error ?? r2.text).toBe(true);
+			expect(r2.value).toBe("function");
+		});
+
+		test("exposes process for env/cwd introspection", async () => {
+			const kernel = new TrioKernel({ name: "process" });
+			const r = await kernel.run("typeof process === 'object' && typeof process.cwd === 'function'");
+			expect(r.ok, r.error ?? r.text).toBe(true);
+			expect(r.value).toBe(true);
+		});
+	});
+
 });

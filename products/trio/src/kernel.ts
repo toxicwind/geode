@@ -185,7 +185,7 @@ export class TrioKernel {
 	}
 
 	#freshContext(): vm.Context {
-		return vm.createContext({ console: this.#console });
+		return vm.createContext({ console: this.#console, process });
 	}
 
 	async run(code: string): Promise<TrioRunResult> {
@@ -195,6 +195,11 @@ export class TrioKernel {
 			const wrapped = await this.#wrap(code);
 			let value: unknown = vm.runInContext(wrapped.source, this.#context, {
 				filename: `cell-${this.#cells}.js`,
+				// Host dynamic imports: cells may `await import('node:os')` etc.
+				// without a callback the vm throws "A dynamic import callback was not
+				// specified". Resolve through import() so node: builtins and any
+				// package reachable from the kernel's own graph both work.
+				importModuleDynamically: (specifier: string) => import(specifier),
 			});
 			value = await value; // completion value, or the async wrapper's promise
 			return { ok: true, value, text: this.#buffer.join("") };
