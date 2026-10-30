@@ -24,17 +24,22 @@
 - [x] Implement persistent bun notebook kernel (vm context + async wrapper) — 12/12 GREEN
 - [x] CLI run/reset/status + stdio server + session daemon persistence
 - [x] Typecheck clean + docs (README semantics pinned)
-- [ ] write trio/TODO.md tracking file + register geode registry/README row
+- [x] trio/TODO.md tracking file + geode registry/README row
 
 ## Deprecation cleanup (TDD)
 
-- [ ] Inventory deprecated/legacy artifacts (legacy-* shims, gated notebook host,
-      deprecated geode `ssot/ports.env`)
-- [ ] TDD replacement coverage pass/fail BEFORE each deletion (guess behavior)
-- [ ] Delete deprecated artifacts — no symlinks — after green
-- [ ] Full test + typecheck green
+- [x] Inventory deprecated artifacts — geode `ssot/ports.env` (self-declared,
+      zero consumers, canonical estate/config/ports.env carries all ports);
+      tau `legacy-bundled-resolver.ts` (test-only indirection); r/o SSE +
+      legacy-* shims are live wiring, kept.
+- [x] TDD replacement coverage pass/fail BEFORE each deletion — deprecation
+      contract tests red→green; loader test switched to the real shim first.
+- [x] Delete deprecated artifacts — no symlinks — after green.
+- [x] Full test + typecheck green (glob 6/6, loader 4/4, geode deprecation
+      3/3, trio 12/12).
 
 ## Verify + ship
 
-- [ ] Verify trio end-to-end (tests + readme example + daemon)
-- [ ] Commit + push trio + tau glob fix
+- [x] Verify trio end-to-end — CLI one-shot, cross-invocation session
+      persistence, status, reset, stdio protocol, class/destructure/await.
+- [x] Commit + push (geode 00f53ec, tau a6239049e3).
