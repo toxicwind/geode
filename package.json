@@ -12,5 +12,8 @@
     "check": "bunx oxlint . && bunx oxfmt --check '*.ts'",
     "lint": "bunx oxlint .",
     "readme": "bun ./bin/readme-gen.ts"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
   }
 }

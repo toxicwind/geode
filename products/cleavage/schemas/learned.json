@@ -1,0 +1,23 @@
+[
+  {
+    "tool": "ask",
+    "path": "questions/0/question",
+    "kind": "required",
+    "detail": "must be string",
+    "learnedAt": "2026-10-30T20:34:36.974Z"
+  },
+  {
+    "tool": "squawk",
+    "path": "from_agent",
+    "kind": "required",
+    "detail": "required field",
+    "learnedAt": "2026-10-30T20:34:36.989Z"
+  },
+  {
+    "tool": "gh",
+    "path": "hasPagesEnabled",
+    "kind": "unknown-field",
+    "detail": "field does not exist in this API surface",
+    "learnedAt": "2026-10-30T20:34:37.004Z"
+  }
+]
