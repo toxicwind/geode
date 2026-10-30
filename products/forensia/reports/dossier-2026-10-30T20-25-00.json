@@ -1,0 +1,1449 @@
+{
+  "generatedAt": "2026-10-30T20:25:00.412Z",
+  "agentDir": "/home/toxic/.tau/agent",
+  "findings": [
+    {
+      "detector": "agent-dir-poison",
+      "severity": "critical",
+      "detail": "ambient env carries RELATIVE PI_CODING_AGENT_DIR=.tau/agent — every consumer honoring it resolves the agent dir against its own cwd (per-directory config split-brain; the local Everstore-handle analog). Fixed upstream: .profile and estate/config/dots export it absolute; something between re-exports it relative."
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://846 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://854 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://65 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://116 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://158 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://155 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://156 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://29 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://71 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://72 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://231 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://233 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://305 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://343 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://104 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://157 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://169 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://258 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://187 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://13 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://5 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://0 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://14 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://57 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://94 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://101 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://103 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://361 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://211 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://360 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://362 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://379 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://380 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://382 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://388 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://445 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://474 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://159 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://96 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://174 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://125 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://85 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://143 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://172 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://186 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://230 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://271 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://107 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://138 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://9 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://293 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://475 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://7 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://11 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://15 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://18 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://20 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://22 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://212 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://224 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://226 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://265 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://43 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://316 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://446 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://134 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://10 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://291 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://75 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://121 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://201 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://123 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://344 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://401 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://910 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71",
+      "detail": "artifact://915 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T08-53-38-237Z_01a0fbd1-af3d-77af-835d-32fcdc32cc71/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T07-49-17-500Z_01a0fb96-c63c-7329-9108-5960065ddc74",
+      "detail": "artifact://1533 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T07-49-17-500Z_01a0fb96-c63c-7329-9108-5960065ddc74/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T07-49-17-500Z_01a0fb96-c63c-7329-9108-5960065ddc74",
+      "detail": "artifact://1515 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T07-49-17-500Z_01a0fb96-c63c-7329-9108-5960065ddc74/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T07-49-17-500Z_01a0fb96-c63c-7329-9108-5960065ddc74",
+      "detail": "artifact://1539 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T07-49-17-500Z_01a0fb96-c63c-7329-9108-5960065ddc74/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T07-49-17-500Z_01a0fb96-c63c-7329-9108-5960065ddc74",
+      "detail": "artifact://473 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-02T07-49-17-500Z_01a0fb96-c63c-7329-9108-5960065ddc74/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://10 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://19 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://27 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://28 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://30 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://31 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://41 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://42 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://44 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://95 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://103 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://114 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://27 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://46 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://260 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://273 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://274 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://437 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://492 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://510 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://473 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://569 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://577 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://632 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://655 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://867 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://841 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1001 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://907 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1002 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1042 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1045 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1086 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://873 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1049 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://877 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://932 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://970 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://979 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1051 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1079 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://878 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://929 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://27 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://28 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://30 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://31 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://120 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://137 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://492 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://569 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1002 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://27 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://28 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://30 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://31 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://120 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://137 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://1008 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad",
+      "detail": "artifact://965 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T03-43-46-193Z_01a0ffdc-5a11-7799-9388-3bd28faf68ad/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://12 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://24 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://34 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://48 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://120 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://137 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1216 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1235 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1258 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1271 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1335 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1342 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1353 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1363 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1456 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1551 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1573 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1640 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1723 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T19-24-37-999Z_01a10339-bcef-717a-8db3-9e6dafa9124b",
+      "detail": "artifact://16 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T19-24-37-999Z_01a10339-bcef-717a-8db3-9e6dafa9124b/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T19-24-37-999Z_01a10339-bcef-717a-8db3-9e6dafa9124b",
+      "detail": "artifact://371 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T19-24-37-999Z_01a10339-bcef-717a-8db3-9e6dafa9124b/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T22-27-47-797Z_01a103e1-6dd5-77da-9e5b-60d5e2685036",
+      "detail": "artifact://0 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T22-27-47-797Z_01a103e1-6dd5-77da-9e5b-60d5e2685036/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T22-27-47-797Z_01a103e1-6dd5-77da-9e5b-60d5e2685036",
+      "detail": "artifact://6 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T22-27-47-797Z_01a103e1-6dd5-77da-9e5b-60d5e2685036/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T22-27-47-797Z_01a103e1-6dd5-77da-9e5b-60d5e2685036",
+      "detail": "artifact://5 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T22-27-47-797Z_01a103e1-6dd5-77da-9e5b-60d5e2685036/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T22-27-47-797Z_01a103e1-6dd5-77da-9e5b-60d5e2685036",
+      "detail": "artifact://10 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-03T22-27-47-797Z_01a103e1-6dd5-77da-9e5b-60d5e2685036/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://0 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://5 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://6 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://10 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://1 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T03-43-29-549Z_01a10502-750d-7612-a860-828086a0162e",
+      "detail": "artifact://1 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T03-43-29-549Z_01a10502-750d-7612-a860-828086a0162e/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://16 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://286 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://371 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://9 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://440 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://499 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://29 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://71 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://72 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://305 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://138 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://504 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2",
+      "detail": "artifact://544 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/2026-10-04T06-00-25-394Z_01a1057f-d232-7471-8b15-85d58edec1b2/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://9 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://21 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://24 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://45 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://57 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://60 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://65 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://67 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://70 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://79 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://87 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://90 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://99 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://104 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://106 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "orphan-artifacts",
+      "severity": "warning",
+      "session": "/home/toxic/.tau/agent/sessions/-tmp",
+      "detail": "artifact://111 referenced but not resolvable in session artifacts dir",
+      "evidence": "/home/toxic/.tau/agent/sessions/-tmp/artifacts"
+    },
+    {
+      "detector": "experiment:hetero-fingerprint",
+      "severity": "info",
+      "detail": "KEEP primary lane (thermal 28C, util 0%, mem 8%)"
+    },
+    {
+      "detector": "experiment:hetero-fingerprint",
+      "severity": "info",
+      "detail": "KEEP latency-sensitive lanes (dispatch p95 1.0ms)"
+    },
+    {
+      "detector": "experiment:agent-dir-split-brain",
+      "severity": "critical",
+      "detail": "POISON: relative PI_CODING_AGENT_DIR=.tau/agent — consumers in different cwd resolve different agent dirs"
+    }
+  ],
+  "stats": {
+    "sessions.checkedForArtifacts": 426,
+    "sessions.artifactRefs": 3080,
+    "findings.total": 203,
+    "findings.critical": 1,
+    "findings.warning": 200,
+    "experiments.ran": 2,
+    "experiment.hetero-fingerprint.delta": "{\"gpuName\":\"missing → NVIDIA GeForce RTX 3090\",\"gpuThermalC\":29,\"gpuUtilPct\":1,\"gpuMemPct\":9,\"dispatchMedianMs\":1.63,\"dispatchP95Ms\":1.96,\"fleetReachable\":\"false → true\",\"fleetModels\":4}",
+    "experiment.hetero-fingerprint.gpuName": "NVIDIA GeForce RTX 3090",
+    "experiment.hetero-fingerprint.gpuThermalC": 28,
+    "experiment.hetero-fingerprint.gpuUtilPct": 0,
+    "experiment.hetero-fingerprint.gpuMemPct": 8,
+    "experiment.hetero-fingerprint.dispatchMedianMs": 0.63,
+    "experiment.hetero-fingerprint.dispatchP95Ms": 0.96,
+    "experiment.hetero-fingerprint.fleetReachable": true,
+    "experiment.hetero-fingerprint.fleetModels": 4,
+    "experiment.agent-dir-split-brain.delta": "{}",
+    "experiment.agent-dir-split-brain.overridePresent": true,
+    "experiment.agent-dir-split-brain.overrideRelative": true,
+    "experiment.agent-dir-split-brain.liveResolved": "/home/toxic/tmp/.tau/agent",
+    "experiment.agent-dir-split-brain.cleanResolved": "/home/toxic/.tau/agent",
+    "experiment.agent-dir-split-brain.cwdDependent": false
+  }
+}

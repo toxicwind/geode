@@ -1,0 +1,44 @@
+{
+  "generatedAt": "2026-10-30T19:35:07.876Z",
+  "agentDir": ".tau/agent",
+  "findings": [
+    {
+      "detector": "experiment:hetero-fingerprint",
+      "severity": "info",
+      "detail": "KEEP primary lane (thermal 27C, util 4%, mem 7%)"
+    },
+    {
+      "detector": "experiment:hetero-fingerprint",
+      "severity": "info",
+      "detail": "KEEP latency-sensitive lanes (dispatch p95 0.9ms)"
+    },
+    {
+      "detector": "experiment:agent-dir-split-brain",
+      "severity": "critical",
+      "detail": "POISON: relative PI_CODING_AGENT_DIR=.tau/agent — consumers in different cwd resolve different agent dirs"
+    }
+  ],
+  "stats": {
+    "sessions.checkedForArtifacts": 0,
+    "sessions.artifactRefs": 0,
+    "findings.total": 3,
+    "findings.critical": 1,
+    "findings.warning": 0,
+    "experiments.ran": 2,
+    "experiment.hetero-fingerprint.delta": "{\"gpuName\":\"missing → NVIDIA GeForce RTX 3090\",\"gpuThermalC\":28,\"gpuUtilPct\":5,\"gpuMemPct\":8,\"dispatchMedianMs\":1.63,\"dispatchP95Ms\":1.89,\"fleetReachable\":\"false → true\",\"fleetModels\":4}",
+    "experiment.hetero-fingerprint.gpuName": "NVIDIA GeForce RTX 3090",
+    "experiment.hetero-fingerprint.gpuThermalC": 27,
+    "experiment.hetero-fingerprint.gpuUtilPct": 4,
+    "experiment.hetero-fingerprint.gpuMemPct": 7,
+    "experiment.hetero-fingerprint.dispatchMedianMs": 0.63,
+    "experiment.hetero-fingerprint.dispatchP95Ms": 0.89,
+    "experiment.hetero-fingerprint.fleetReachable": true,
+    "experiment.hetero-fingerprint.fleetModels": 4,
+    "experiment.agent-dir-split-brain.delta": "{}",
+    "experiment.agent-dir-split-brain.overridePresent": true,
+    "experiment.agent-dir-split-brain.overrideRelative": true,
+    "experiment.agent-dir-split-brain.liveResolved": "/home/toxic/pens/geode/products/forensia/.tau/agent",
+    "experiment.agent-dir-split-brain.cleanResolved": "/home/toxic/.tau/agent",
+    "experiment.agent-dir-split-brain.cwdDependent": false
+  }
+}

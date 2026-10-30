@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-10-30T19:32:40.695Z",
+  "agentDir": ".tau/agent",
+  "findings": [],
+  "stats": {
+    "sessions.checkedForArtifacts": 0,
+    "sessions.artifactRefs": 0,
+    "findings.total": 0,
+    "findings.critical": 0,
+    "findings.warning": 0
+  }
+}
