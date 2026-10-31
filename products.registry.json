@@ -84,6 +84,23 @@
     "trio": {
       "enabled": true,
       "aliases": []
+    },
+    "spine": {
+      "enabled": true,
+      "aliases": []
+    },
+    "coreelec-mcp": {
+      "enabled": true,
+      "aliases": []
+    },
+    "perthite": {
+      "enabled": true,
+      "aliases": []
+    }
+    ,
+    "pylae": {
+      "enabled": true,
+      "aliases": ["pylae", "omniroute"]
     }
   }
 }
