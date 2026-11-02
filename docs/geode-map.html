@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>geode — the inference plane</title>
+<style>
+  :root{
+    --bg:#0d1117; --card:#161b22; --edge:#30363d; --txt:#e6edf3; --dim:#8b949e;
+    --pink:#e548a8; --green:#3fb950; --amber:#d29922; --red:#f85149; --blue:#58a6ff; --purple:#bc8cff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font:16px/1.5 -apple-system,"Segoe UI",Roboto,sans-serif;padding:20px}
+  h1{font-size:1.5em;margin-bottom:4px}
+  h1 .crystal{color:var(--pink)}
+  .sub{color:var(--dim);margin-bottom:20px;font-size:.9em}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:10px;padding:14px 16px}
+  .card h2{font-size:1.05em;margin-bottom:2px}
+  .card .role{color:var(--dim);font-size:.85em;margin-bottom:8px}
+  .pill{display:inline-block;font-size:.72em;padding:2px 9px;border-radius:999px;margin:2px 4px 2px 0;border:1px solid}
+  .live{color:var(--green);border-color:var(--green)}
+  .dead{color:var(--red);border-color:var(--red)}
+  .lab{color:var(--amber);border-color:var(--amber)}
+  .port{color:var(--blue);border-color:var(--blue)}
+  .chain{margin-top:8px;font-size:.82em;color:var(--dim)}
+  .chain b{color:var(--purple)}
+  .arrow{color:var(--pink)}
+  section{margin-top:26px}
+  section h2{font-size:1.15em;border-bottom:1px solid var(--edge);padding-bottom:6px;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:.86em}
+  th{color:var(--dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--edge);font-weight:600}
+  td{padding:6px 8px;border-bottom:1px solid #21262d;vertical-align:top}
+  td b{color:var(--blue)}
+  .ok{color:var(--green)} .bad{color:var(--red)} .warn{color:var(--amber)}
+</style>
+</head>
+<body>
+<h1>geode <span class="crystal">◆</span> — the estate's inference plane</h1>
+<div class="sub">/home/toxic/pens/geode · audit 2026-10-31 · live wire state</div>
+
+<section>
+<h2>The router stack — who serves completions</h2>
+<div class="grid">
+  <div class="card" style="border-color:var(--pink)">
+    <h2>rhodochrosite <span class="pill live">CANONICAL</span> <span class="pill port">:25193</span></h2>
+    <div class="role">Multi-provider gateway. Rust. Never breaks an upstream's speed limit.</div>
+    <div class="chain">renames: omniroute <span class="arrow">→</span> hodos <span class="arrow">→</span> <b>rhodochrosite</b> (port 20130 → 25193)</div>
+    <div class="chain">providers: nvidia · google(opal) · groq · github · freeinference · siliconflow · mistral · perplexity…</div>
+    <div class="chain warn">⚠ known bug: `rhodochrosite` self-loop provider + OK-shed</div>
+  </div>
+  <div class="card">
+    <h2>chalcopyrite <span class="pill lab">SUPERSEDED</span> <span class="pill port">:25200</span></h2>
+    <div class="role">Ex-canonical front door (2026-10-02→10-26). TypeScript strategy router.</div>
+    <div class="chain">renames: cuttinggate <span class="arrow">→</span> <b>chalcopyrite</b></div>
+    <div class="chain">lost to rhodo: it was stopped at decision time; rhodo was live serving 555 models + got all the Rust hardening</div>
+  </div>
+  <div class="card">
+    <h2>bornite <span class="pill live">LOCAL ENGINE</span> <span class="pill port">:25100</span></h2>
+    <div class="role">Local VRAM inference fleet. Go. Zero-downtime model swap.</div>
+    <div class="chain">renames: herd / llama-swap <span class="arrow">→</span> <b>bornite</b></div>
+    <div class="chain">"flock" = its cloud-API scaffold (live semantic name, kept on purpose)</div>
+  </div>
+  <div class="card">
+    <h2>opal <span class="pill live">EAP · PRIVATE</span> <span class="pill port">via :25193</span></h2>
+    <div class="role">Gemini tool-retrieval EAP engine = the `google` lane. Confidential; never public.</div>
+    <div class="chain">plan-name drift: PLAN.md said <i>danburite</i>; tree says <b>opal</b></div>
+  </div>
+  <div class="card">
+    <h2>pens-completions <span class="pill lab">BACKUP NUCLEUS</span></h2>
+    <div class="role">Dormant clean TS completion server — the roll-our-own fallback if the router family ever needs re-floating.</div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2>Code intelligence — trio (consolidated today)</h2>
+<div class="card">
+  <h2>trio <span class="pill live">7 TOOLS · ONE UPSTREAM</span></h2>
+  <div class="role">Notebook kernel + unified MCP: rc_compare, rc_tree_compare, rc_deps, rc_short_grep, rc_gh_compare, read_trio_audit, trio_route.</div>
+  <div class="chain">triphylite (AST+BM25+LSP+ROUTE, RRF) merged in today; now Rust-aware (traces .rs routers); archived under archive/retired-2026-10-31/</div>
+  <div class="chain ok">✓ live-verified through thresher :25127 — tools surface as trio:*</div>
+</div>
+</section>
+
+<section>
+<h2>Everything else (geode products, quick roles)</h2>
+<table>
+  <tr><th>product</th><th>what it is</th></tr>
+  <tr><td><b>azurite</b></td><td>skills hub (~/.tau/skills SSOT)</td></tr>
+  <tr><td><b>cleavage</b></td><td>agent-dir tools</td></tr>
+  <tr><td><b>faceter</b></td><td>vision/compare lab</td></tr>
+  <tr><td><b>forensia</b></td><td>forensics</td></tr>
+  <tr><td><b>lapidary</b></td><td>the rename engine (pairs files drive renames)</td></tr>
+  <tr><td><b>malachite</b></td><td>ui/web</td></tr>
+  <tr><td><b>mimetite</b></td><td>provider catalog SSOT — generates roost/mimetite_providers.rs</td></tr>
+  <tr><td><b>perthite</b></td><td>…</td></tr>
+  <tr><td><b>scintillator</b></td><td>…</td></tr>
+  <tr><td><b>spine</b></td><td>…</td></tr>
+  <tr><td><b>triphylite</b></td><td class="warn">retired → trio</td></tr>
+</table>
+</section>
+
+<section>
+<h2>Live right now (wire-verified)</h2>
+<table>
+  <tr><th>port</th><th>process</th><th>state</th></tr>
+  <tr><td>25193</td><td>rhodochrosite (pid 2928667)</td><td class="warn">up, sheds OK on tool-loop turn-2</td></tr>
+  <tr><td>25100</td><td>bornite</td><td class="ok">up</td></tr>
+  <tr><td>25196</td><td>rig daemon</td><td class="warn">Parse error on shed (stale binary, fix compiled, swap pending)</td></tr>
+  <tr><td>25127</td><td>thresher gateway</td><td class="ok">up — trio: tools federated</td></tr>
+  <tr><td>25200</td><td>chalcopyrite</td><td class="ok">up, superseded</td></tr>
+</table>
+</section>
+
+<div class="sub" style="margin-top:24px">naming chain one-liner: omniroute → hodos → <b>rhodochrosite</b> · cuttinggate → <b>chalcopyrite</b> · herd → <b>bornite</b> · flock = kept (live keys/ids) · roost → pinax (residue in code) · danburite → <b>opal</b></div>
+</body>
+</html>

@@ -6,7 +6,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const mod = await import("../bin/cleavage.ts");
+const mod = await import("./bin/cleavage.ts");
 const server = new McpServer({ name: "cleavage", version: "0.1.0" });
 
 server.tool(

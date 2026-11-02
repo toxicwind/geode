@@ -8,7 +8,7 @@
 - env loader (packages/utils/src/env.ts): applies dotenv files into
   process.env — candidates: ~/.tau/.env (line 57 = ABSOLUTE, correct),
   ~/.tau/agent/.env (NVIDIA key only), cwd/.env* (none in ~/tmp),
-  direnv (.envrc: tau/.envrc sources GHOST /home/toxic/estate/.envrc!).
+  direnv (.envrc: tau/.envrc sources GHOST /home/toxic/pens/estate/.envrc!).
 - getConfigAgentDirName() returns RELATIVE ".tau/agent" BY DESIGN — some code
   path assigns its output to the env var; ast_grep found no `.ts` site (only
   prose hits in .sh bench files = false positives).

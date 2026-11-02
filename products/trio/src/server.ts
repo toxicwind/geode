@@ -2,11 +2,13 @@ import { createInterface } from "node:readline";
 import * as net from "node:net";
 import * as fs from "node:fs";
 import { TrioKernel } from "./kernel.ts";
+import { compare, type Variant } from "./compare.ts";
 
 export interface StdioRequest {
 	id?: unknown;
 	op: string;
 	code?: string;
+	variants?: Array<{ name: string; source: string }>;
 }
 
 export interface StdioResponse {
@@ -34,6 +36,14 @@ async function handleRequest(kernel: TrioKernel, request: StdioRequest): Promise
 	}
 	if (request.op === "status") {
 		return { id: request.id, ok: true, value: kernel.status() };
+	}
+	if (request.op === "compare" && Array.isArray(request.variants)) {
+		try {
+			const report = compare(request.variants as Variant[]);
+			return { id: request.id, ok: true, value: report };
+		} catch (e) {
+			return { id: request.id, ok: false, error: e instanceof Error ? e.message : String(e) };
+		}
 	}
 	return { id: request.id, ok: false, error: `unknown op: ${request.op}` };
 }

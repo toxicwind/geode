@@ -12,6 +12,7 @@ import { parseArgs } from "node:util";
 import { TrioKernel } from "../src/kernel.ts";
 import { runStdioServer } from "../src/server.ts";
 import { sessionReset, sessionRun, sessionStatus } from "../src/session.ts";
+import { compare } from "../src/compare.ts";
 
 const { values, positionals } = parseArgs({
 	options: {
@@ -84,6 +85,26 @@ if (values.session !== undefined || command === "status") {
 }
 
 // Bare one-shot: fresh kernel, no daemon.
+if (command === "compare") {
+	const raw = positionals[1];
+	if (raw === undefined) {
+		console.error('usage: trio compare \'[{"name":"a","source":"..."},…]\'  (or pipe JSON to stdin)');
+		process.exit(1);
+	}
+	let variants: Array<{ name: string; source: string }>;
+	try {
+		variants = raw.startsWith("@")
+			? JSON.parse(await Bun.file(raw.slice(1)).text())
+			: JSON.parse(raw);
+	} catch (e) {
+		console.error(`invalid variants JSON: ${e instanceof Error ? e.message : e}`);
+		process.exit(1);
+	}
+	const report = compare(variants);
+	process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+	process.exit(0);
+}
+
 if (command === "run") {
 	const code = positionals[1];
 	if (code === undefined) {
