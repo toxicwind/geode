@@ -28,7 +28,7 @@ Do not hand-edit the Products table._
 | **injection-detector** | [toxicwind/injection-detector](https://github.com/toxicwind/injection-detector) | — | TypeScript | The insight: strong embedding models place **instructions and data in |
 | **lapidary** | [toxicwind/lapidary](https://github.com/toxicwind/lapidary) | — | TypeScript | lapidary cuts & polishes product names across a repo using .lapidary rule |
 | **malachite** | [toxicwind/malachite](https://github.com/toxicwind/malachite) | — | TypeScript | Green mineral, green lights that are actually green. Replaces the ad-hoc |
-| **mimetite** | [toxicwind/pinax](https://github.com/toxicwind/pinax) | — | TypeScript | > *Every flock comes home to **pinax** — where the birds settle, perch, and |
+| **mimetite** | [toxicwind/mimetite](https://github.com/toxicwind/mimetite) | — | TypeScript | The estate's master provider catalog (ex-pinax): provider defs, live discovery, alias map, auto-quarantine. Codegen emits tau/kappa/rust/go artifacts. |
 | **multiformat-lsp** | [toxicwind/multiformat-lsp](https://github.com/toxicwind/multiformat-lsp) | — | TypeScript | — |
 | **onyx** | [toxicwind/onyx](https://github.com/toxicwind/onyx) | — | TypeScript | > The estate's **browser-session vault** — borrow, keep, and restore full |
 | **opal** | [toxicwind/theta](https://github.com/toxicwind/theta) | — | TypeScript | > **CONFIDENTIAL / PRIVATE.** This package is the estate's **EAP** (Gemini Tool |
