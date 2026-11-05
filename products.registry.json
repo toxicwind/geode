@@ -101,6 +101,10 @@
     "pylae": {
       "enabled": true,
       "aliases": ["pylae", "omniroute"]
+    },
+    "stochos": {
+      "enabled": true,
+      "aliases": []
     }
   }
 }

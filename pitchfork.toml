@@ -41,7 +41,7 @@ retries = 3
 # secrets via keyring SSOT (anomaly #16/#58 contract): ADMIN_PASSWORD seeds the
 # first superuser + PROXY_API_KEYS seeds client keys, both headless-additive
 # (settings.rs apply_env_seeds); idempotent on restart, never committed here.
-run = "exec /bin/sh -c 'eval $(/home/toxic/.local/bin/secretsmith env --app rhodochrosite) && exec ./serve.sh'"
+run = "exec /bin/sh -c 'eval $(/home/toxic/.local/bin/kryptos env --app rhodochrosite) && exec ./serve.sh'"
 auto = ["start"]
 retry = true
 ready_http = "http://127.0.0.1:25193/health"
