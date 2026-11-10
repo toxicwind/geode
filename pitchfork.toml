@@ -37,38 +37,39 @@ interval = "30s"
 timeout = "5s"
 retries = 3
 
-[daemons.rhodochrosite]
-# secrets via keyring SSOT (anomaly #16/#58 contract): ADMIN_PASSWORD seeds the
-# first superuser + PROXY_API_KEYS seeds client keys, both headless-additive
-# (settings.rs apply_env_seeds); idempotent on restart, never committed here.
-run = "exec /bin/sh -c 'eval $(/home/toxic/.local/bin/kryptos env --app rhodochrosite) && exec ./serve.sh'"
+[daemons.mimetite]
+# 2026-11-08: router replaced — nimproxy vendored binary + serve.sh deleted
+# (product-wide rename to router/src/server.ts, pure Bun, loopback-trusted).
+# run repointed from `exec ./serve.sh` (ENOENT every start) to the new entry.
+run = "exec bash /home/toxic/pens/geode/products/mimetite/serve.sh"
 auto = ["start"]
 retry = true
 ready_http = "http://127.0.0.1:25193/health"
 port = 25193
 expected_port = [25193]
-dir = "/home/toxic/pens/geode/products/rhodochrosite/proxy"
+dir = "/home/toxic/pens/geode/products/mimetite"
 mise = true
-[daemons.rhodochrosite.health_http]
+[daemons.mimetite.health_http]
 url = "http://127.0.0.1:25193/health"
 interval = "30s"
 timeout = "5s"
 retries = 3
-[daemons.rhodochrosite.env]
+[daemons.mimetite.env]
+MIMETITE_PORT = "25193"
 PORT = "25193"
-DATA_DIR = "/home/toxic/.rhodochrosite-data"
+DATA_DIR = "/home/toxic/.mimetite-router-data"
 HOST = "127.0.0.1"
 
 [groups.mesh]
-daemons = ["chalcopyrite", "rhodochrosite", "bornite"]
+daemons = ["chalcopyrite", "mimetite", "bornite"]
 
 # Monolith copy dropped 2026-10-29 (partition): geode's own definition above is
 # live truth. mise = true note stands (anomaly #43 class): `mise x` exits 2 in
 # dirs without toolchain activation, killing the daemon pre-bind; serve.sh execs
 # an absolute release binary, so mise adds nothing here.
-# 2026-10-29: the former [daemons.rhodochrosite.monolith-note] sub-table was a
+# 2026-10-29: the former [daemons.mimetite.monolith-note] sub-table was a
 # phantom daemon registration (pitchfork parsed it as a second daemon), and
-# `run` was `exec ./products/rhodochrosite/proxy/serve.sh` while `dir` already
+# `run` was `exec ./products/mimetite/proxy/serve.sh` while `dir` already
 # pointed at the proxy — the doubled path `proxy/products/...` ENOENT'd every
 # start (exit 127). Fixed to `exec ./serve.sh`.
 
@@ -99,4 +100,4 @@ boot_start = true
 dir = "/home/toxic/pens/geode/products/pens-completions"
 [daemons.pens-completions.env]
 PENS_COMPLETIONS_PORT = "25252"
-RHODOCHROSITE_ORIGIN = "http://127.0.0.1:25193"
+MIMETITE_ORIGIN = "http://127.0.0.1:25193"

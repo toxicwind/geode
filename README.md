@@ -39,7 +39,7 @@ Do not hand-edit the Products table._
 | **pi-skills** | [toxicwind/pi-skills](https://github.com/toxicwind/pi-skills) | — | TypeScript | Superseded by **azurite** (@geode/azurite) — the single skills SSOT at |
 | **pseudobrookite** | [toxicwind/pseudobrookite](https://github.com/toxicwind/pseudobrookite) | — | TypeScript | the pseudo-rutile. It pretends to be an embedding layer, then tells you what it |
 | **pylae** | [toxicwind/flocksync](https://github.com/toxicwind/flocksync) | — | TypeScript | > Stacking free tiers by hand is painful — dozens of SDKs, dozens of rate limits, and no idea how much you act |
-| **rhodochrosite** | [toxicwind/hodos](https://github.com/toxicwind/hodos) | 25193 | TypeScript | > 🗺️ Part of **geode** — one of the estate's five pens. |
+| **scintillator** | [toxicwind/scintillator](https://github.com/toxicwind/scintillator) | — | — | > **The proof subsystem** — orthogonal, self-bootstrapping, copy-paste-runnable proofs that VERIFY the estate's |
 | **scintillator** | [toxicwind/scintillator](https://github.com/toxicwind/scintillator) | — | — | > **The proof subsystem** — orthogonal, self-bootstrapping, copy-paste-runnable proofs that VERIFY the estate' |
 | **selenite** | [toxicwind/selenite](https://github.com/toxicwind/selenite) | 25260 | TypeScript | PacketProwler persists everything in Firefox extension storage (browser-extension-data/packet-prowler@jojinjoh |
 | **spine** | [toxicwind/spine](https://github.com/toxicwind/spine) | — | — | — |
