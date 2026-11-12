@@ -22,14 +22,19 @@ CHALCOPYRITE_PORT = "25200"
 CHALCOPYRITE_LOG_LEVEL = "info"
 
 [daemons.bornite]
-run = "exec /home/toxic/pens/estate/stack/services/bornite.sh"
+# 2026-11-10: bornite absorbed mimetite (bornite name deprecated, product
+# renamed mimetite) — the merged tree is geode/products/bornite. This daemon
+# runs the Go local/GPU serving plane (astmatrix router + llama-swap) on
+# 25100. Old run line pointed at the estate ghost path
+# (/home/toxic/pens/estate/stack/services/bornite.sh — ENOENT, exit 127).
+run = "exec /home/toxic/pens/geode/products/bornite/bin/bornite/bornite --config /home/toxic/pens/geode/products/bornite/config/bornite.yaml"
 auto = ["start"]
 retry = true
 ready_http = "http://127.0.0.1:25100/health"
 port = 25100
 expected_port = [25100]
 depends = ["chalcopyrite"]
-dir = "/home/toxic/pens/estate"
+dir = "/home/toxic/pens/geode/products/bornite"
 mise = true
 [daemons.bornite.health_http]
 url = "http://127.0.0.1:25100/health"
@@ -38,16 +43,19 @@ timeout = "5s"
 retries = 3
 
 [daemons.mimetite]
-# 2026-11-08: router replaced — nimproxy vendored binary + serve.sh deleted
-# (product-wide rename to router/src/server.ts, pure Bun, loopback-trusted).
-# run repointed from `exec ./serve.sh` (ENOENT every start) to the new entry.
-run = "exec bash /home/toxic/pens/geode/products/mimetite/serve.sh"
+# 2026-11-10: bornite absorbed mimetite (bornite name deprecated) — the
+# merged product lives in geode/products/bornite. The cloud router is
+# router/src/server.ts in the merged tree (imports catalog/src/data.ts).
+# serve.sh was deleted 2026-11-08; the old run line ENOENT'd every start
+# (exit 127) and pitchfork's ready_http never passed, so `pitchfork restart`
+# hung forever. one-router product retired — router lives here.
+run = "exec ./serve.sh"
 auto = ["start"]
 retry = true
 ready_http = "http://127.0.0.1:25193/health"
 port = 25193
 expected_port = [25193]
-dir = "/home/toxic/pens/geode/products/mimetite"
+dir = "/home/toxic/pens/geode/products/bornite/router"
 mise = true
 [daemons.mimetite.health_http]
 url = "http://127.0.0.1:25193/health"
@@ -57,6 +65,7 @@ retries = 3
 [daemons.mimetite.env]
 MIMETITE_PORT = "25193"
 PORT = "25193"
+UNIFIED_ROUTER_PORT = "25193"
 DATA_DIR = "/home/toxic/.mimetite-router-data"
 HOST = "127.0.0.1"
 
@@ -101,3 +110,23 @@ dir = "/home/toxic/pens/geode/products/pens-completions"
 [daemons.pens-completions.env]
 PENS_COMPLETIONS_PORT = "25252"
 MIMETITE_ORIGIN = "http://127.0.0.1:25193"
+
+# bornite-local-lane (2026-11-12): the first-class LOCAL silicon lane (llama-swap).
+# qwen2.5-3b on RTX 3090, :25196, NO cap. Local-first router default; cloud only
+# on latency budget. Replaces hand-started llama-server with a managed daemon.
+[daemons.bornite-local-lane]
+run = "exec /home/toxic/pens/geode/products/bornite/bornite-local-lane.sh"
+auto = ["start"]
+retry = true
+ready_http = "http://127.0.0.1:25196/health"
+port = 25196
+expected_port = [25196]
+dir = "/home/toxic/pens/geode/products/bornite"
+mise = true
+[daemons.bornite-local-lane.health_http]
+url = "http://127.0.0.1:25196/health"
+interval = "30s"
+timeout = "5s"
+retries = 3
+[daemons.bornite-local-lane.env]
+LOCAL_LANE_PORT = "25196"
