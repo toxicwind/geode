@@ -1,6 +1,6 @@
 # Session retrospective dossier — 2026-10-30 (tau @ awrawr-pc)
 
-## 1. Poison-pattern correlation table (hosted-platform → our estate)
+## 1. Poison-pattern correlation table (hosted-platform → our Pens)
 
 | Pattern element | Our analog | Detector/product |
 |---|---|---|
@@ -26,7 +26,7 @@ BASH_VERSION. Fork target: `crates/vendor/brush-core`. Parity suite:
 - Deny gate: identity-resolved (PATH-escape dead) + routed messages (no config-stripping advice). bdfaf1cc72.
 - Pens: +dedicated, +forge, +nomenclator (make-pen.ts fixed: await-in-sync, PENS_ROOT walk-up).
 - lapidary cutover: pairs→lapidary complete (.pairs→.lapidary, 0 leftovers; peers' faceter fork folded forward). 4667d4d.
-- spine MVP: squawk-ws watch + kafka durable receipts (:25144 verified) + estate-chat relay; emit seq 80; WS-frame≠HTTP-send learned. a346da3.
+- spine MVP: squawk-ws watch + kafka durable receipts (:25144 verified) + Pens-chat relay; emit seq 80; WS-frame≠HTTP-send learned. a346da3.
 - EMR verdict: Ray (10x receipt: Amazon exabyte Spark→Ray, 91% cost gain); hardware plane 3090 SM86 24GB + Ryzen 8700F AVX-512, dispatch p95 0.7–1.9ms live.
 
 ## 4. Pages audit
@@ -44,7 +44,7 @@ codeflux-patchling workflow/no build). github.io opt-in ONLY — doctrine in roo
 
 ## New pens topology (post-session)
 
-pens/{estate,geode,barn,ranch,olympus,dedicated,forge,nomenclator,ergasterion,...}
+pens/{Pens,geode,barn,ranch,olympus,dedicated,forge,nomenclator,ergasterion,...}
 - dedicated: dedicated-server-ops (deploy plane)
 - forge: router/flock-proxy, codeflux-patchling, anvil (mutation plane)
 - nomenclator: names/aliases/injection master (4 products to seed)

@@ -8,7 +8,7 @@
 - env loader (packages/utils/src/env.ts): applies dotenv files into
   process.env — candidates: ~/.tau/.env (line 57 = ABSOLUTE, correct),
   ~/.tau/agent/.env (NVIDIA key only), cwd/.env* (none in ~/tmp),
-  direnv (.envrc: tau/.envrc sources GHOST /home/toxic/pens/estate/.envrc!).
+  direnv (.envrc: tau/.envrc sources GHOST /home/toxic/pens/Pens/.envrc!).
 - getConfigAgentDirName() returns RELATIVE ".tau/agent" BY DESIGN — some code
   path assigns its output to the env var; ast_grep found no `.ts` site (only
   prose hits in .sh bench files = false positives).
@@ -18,7 +18,7 @@
    trace=write -s 200 2>&1 | grep PI_CODING` or set a getter trap
    (Object.defineProperty(process.env, 'PI_CODING_AGENT_DIR', {set})) in a
    preloaded module; the setter stack trace IS the leak site.
-2. ALSO check: kappa-acp/kappa-serve.sh, estate-ops shims (they source
+2. ALSO check: kappa-acp/kappa-serve.sh, Pens-ops shims (they source
    .bashrc.env which is absolute — but a shim may re-export relative).
 
 ## Known escape

@@ -3,25 +3,25 @@
  *
  * Unit tests prove code paths; this suite proves DEPLOYED CONTRACTS. Every
  * test drives a real daemon over real HTTP and asserts the observable
- * contract the estate depends on. A green unit suite with red here means the
- * estate is lying about working.
+ * contract the pens depends on. A green unit suite with red here means the
+ * pens is lying about working.
  *
  * Credentials resolve from the kryptos keyring (SSOT) — never hardcoded.
- * Ports resolve from estate/config/ports.env (names drift; SSOT is truth).
+ * Ports resolve from pens/config/ports.env (names drift; SSOT is truth).
  */
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
 
-const ESTATE = join(homedir(), "estate");
+const pens = join(homedir(), "pens");
 const TIMEOUT = 20_000;
 
 function portEnv(): Map<string, string> {
   const m = new Map<string, string>();
   try {
     for (const line of readFileSync(
-      join(ESTATE, "config/ports.env"),
+      join(pens, "config/ports.env"),
       "utf8",
     ).split("\n")) {
       const t = line.trim();
@@ -91,12 +91,12 @@ function lanes(): Lane[] {
   const thresher = p("THRESHER_PORT", "MCPPROXY_GO_PORT");
   if (thresher)
     out.push({ name: "thresher", base: `http://127.0.0.1:${thresher}` });
-  const chat = p("SQUAWK_CHAT_PORT", "ESTATE_CHAT_PORT");
+  const chat = p("SQUAWK_CHAT_PORT", "pens_CHAT_PORT");
   if (chat)
     out.push({
-      name: "estate-chat",
+      name: "pens-chat",
       base: `http://127.0.0.1:${chat}`,
-      auth: () => readTokenFile("estate-chat-token"),
+      auth: () => readTokenFile("pens-chat-token"),
     });
   return out;
 }
@@ -135,7 +135,7 @@ describe("geode live contracts", () => {
       test(`answers its health contract`, async () => {
         // Lanes expose different contracts: OpenAI-shaped lanes answer
         // /v1/models with a roster; infra planes (thresher MCP proxy,
-        // estate-chat) answer their own health/status endpoints.
+        // pens-chat) answer their own health/status endpoints.
         const openaiLanes = new Set([
           "bornite",
           "rhodochrosite",

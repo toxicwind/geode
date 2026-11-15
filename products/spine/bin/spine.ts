@@ -5,7 +5,7 @@
  * Topology (each layer does what it already does best):
  *   squawk-ws (:25147)  — live event fan-out (WS client here)
  *   kafka (:25144)      — durable log of record (console-producer/consumer)
- *   estate-chat (:25120)— per-room delivery to agents
+ *   Pens-chat (:25120)— per-room delivery to agents
  *   rig (openfang fork) — controller/front (config: ~/.rig/config.toml;
  *                         rig gates + routes — MVP reads an ACL file)
  *
@@ -13,7 +13,7 @@
  * log durable; nothing waits in a queue.
  *
  * MVP behaviors:
- *   spine watch            — WS → kafka receipts + estate-chat relay (excl. self)
+ *   spine watch            — WS → kafka receipts + Pens-chat relay (excl. self)
  *   spine emit <room> <text> — inject an event (test vector)
  *   spine log [n]          — tail the durable kafka log
  */
@@ -30,7 +30,7 @@ const TOPIC = "spine.events";
 const SELF = process.env.SPINE_AGENT ?? "tau";
 
 function token(): string {
-	return fs.readFileSync(path.join(os.homedir(), ".config", "estate-chat-token"), "utf8").trim();
+	return fs.readFileSync(path.join(os.homedir(), ".config", "Pens-chat-token"), "utf8").trim();
 }
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -98,7 +98,7 @@ if (cmd === "watch") await watch();
 	else if (cmd === "emit") {
 		const room = rest[0] ?? "fleet";
 		const text = rest.slice(1).join(" ");
-		// HTTP send path (estate-chat) — the WS frame shape at :25147 is not
+		// HTTP send path (Pens-chat) — the WS frame shape at :25147 is not
 		// the room-send API (live: posts via WS never landed; HTTP seq
 		// increments). WS remains the WATCH leg.
 		const res = await fetch(`${CHAT}/v1/rooms/${room}/messages`, {

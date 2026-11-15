@@ -4,7 +4,7 @@
 # the binary ACTUALLY does on this box (bun 1.4.4-canary.1+).
 #
 # Self-bootstrapping: needs only bash + a bun on PATH. Installs nothing.
-# Copy-paste runnable anywhere on the estate.
+# Copy-paste runnable anywhere on the Pens.
 #
 # SCINTILLATION: each assertion that verifies (vs the CLAIMED behavior)
 # scores 10; a caught divergence scores 25 (finding what devs missed is the

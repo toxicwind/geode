@@ -1,6 +1,6 @@
 # ✨ Scintillator
 
-> **The proof subsystem** — orthogonal, self-bootstrapping, copy-paste-runnable proofs that VERIFY the estate's runtime claims live. Forked from forensia's experiment framework (which had no proof subsystem); lives in geode by architect choice (**scintillator**: the crystal that flashes when a particle actually hits — every proof emits a scintillation receipt).
+> **The proof subsystem** — orthogonal, self-bootstrapping, copy-paste-runnable proofs that VERIFY the Pens's runtime claims live. Forked from forensia's experiment framework (which had no proof subsystem); lives in geode by architect choice (**scintillator**: the crystal that flashes when a particle actually hits — every proof emits a scintillation receipt).
 
 ## Doctrine
 

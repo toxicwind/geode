@@ -1,8 +1,8 @@
-# Per-pen pitchfork config — partitioned from estate monolith 2026-10-29 (v2, sub-tables intact)
+# Per-pen pitchfork config — partitioned from pens monolith 2026-10-29 (v2, sub-tables intact)
 # geode pen — product-owned daemon manifest (namespace: geode).
-# The mineral-family products own their lifecycle here, not in the estate
+# The mineral-family products own their lifecycle here, not in the pens
 # control plane: the pen is the inference plane (catalog, routers, engines).
-# Migrated from estate/pitchfork.toml 2026-10-26 during the geode rename.
+# Migrated from pens/pitchfork.toml 2026-10-26 during the geode rename.
 
 [daemons.chalcopyrite]
 run = "exec ./chalcopyrite-serve.sh"
@@ -25,8 +25,8 @@ CHALCOPYRITE_LOG_LEVEL = "info"
 # 2026-11-10: bornite absorbed mimetite (bornite name deprecated, product
 # renamed mimetite) — the merged tree is geode/products/mimetite. This daemon
 # runs the Go local/GPU serving plane (astmatrix router + llama-swap) on
-# 25100. Old run line pointed at the estate ghost path
-# (/home/toxic/pens/estate/stack/services/bornite.sh — ENOENT, exit 127).
+# 25100. Old run line pointed at the pens ghost path
+# (/home/toxic/pens/pens/stack/services/bornite.sh — ENOENT, exit 127).
 run = "exec /home/toxic/pens/geode/products/mimetite/bin/bornite/bornite --config /home/toxic/pens/geode/products/mimetite/config/bornite.yaml"
 auto = ["start"]
 retry = true

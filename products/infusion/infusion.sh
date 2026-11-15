@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # infusion — the bash autoloader leg (mirrors the kairos BASH_ENV pattern).
-# Sourced via BASH_ENV (every non-interactive bash on the estate) or manually.
+# Sourced via BASH_ENV (every non-interactive bash on the Pens) or manually.
 # Never fails loudly: a missing product must degrade to a no-op, not break
 # every bash spawn on the box (the kairos lesson — BASH_ENV is hot path).
 INFUSION_ROOT="${INFUSION_ROOT:-/home/toxic/pens/geode/products/infusion}"

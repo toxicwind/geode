@@ -10,7 +10,7 @@
 
 # --- package identity (scope + package name) -------------------------------
 substr: @toxicwind/pinax => @toxicwind/mimetite
-substr: @estate/pinax => @estate/mimetite
+substr: @pens/pinax => @pens/mimetite
 
 # --- the bare name as a word -----------------------------------------------
 word: pinax => mimetite
@@ -25,7 +25,7 @@ substr: Pinax_ => Mimetite_
 # --- paths ------------------------------------------------------------------
 substr: /pinax/ => /mimetite/
 substr: pins/pinax => pins/mimetite
-substr: estate/pinax => estate/mimetite
+substr: pens/pinax => pens/mimetite
 
 # --- do NOT touch these: they are real identifiers of OTHER things ---------
 exclude: PINAX_API_KEY

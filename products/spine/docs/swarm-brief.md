@@ -1,14 +1,14 @@
 # Swarm brief — the October-2026 emergent stack (fast-timeout swarm doctrine)
 
 **Goal**: name + build the kafka(✓ :25144 live)+Ray(EMR-clone verdict landed)
-emergent stack pen for the estate, with the reactive event spine (✓ MVP:
+emergent stack pen for the Pens, with the reactive event spine (✓ MVP:
 `spine watch|emit|log`) as its first tenant.
 
 ## Swarm contract (fast timeout = model rotation = refinement)
 
 - **Timeout discipline**: every subagent run gets a FAST timeout (≤120s hard).
   A timeout is NOT failure — it is a MODEL signal: the run store records which
-  model timed out, and the next iteration rotates the lane (the estate's
+  model timed out, and the next iteration rotates the lane (the Pens's
   per-model credit-strike doctrine applied to TIME instead of credits).
 - **Run store**: `runs/<timestamp>-<agent>-<slug>/` — every subagent writes
   `receipt.json` (schema: {task, model, outcome: done|timeout|error,

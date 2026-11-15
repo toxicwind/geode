@@ -3,7 +3,7 @@
 # PROOF: kafka :25144 — real broker semantics: produce→consume roundtrip,
 # end-to-end dispatch latency, and consumer-group claim semantics (the
 # lease-not-queue doctrine's factual basis). Self-bootstrapping: needs the
-# estate kafka install (/usr/share/kafka). Copy-paste runnable.
+# Pens kafka install (/usr/share/kafka). Copy-paste runnable.
 # ==============================================================================
 set -uo pipefail
 SCORE=0

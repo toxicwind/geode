@@ -1,9 +1,9 @@
 # Bin
 
-One of the estate's five pens (`pens/{estate,geode,barn,ranch,olympus}`).
+One of the pens's five pens (`pens/{pens,geode,barn,ranch,olympus}`).
 Every pen has the same shape: `products/` for peer standalone checkouts,
 `docs/` for pen-owned documentation, and a `bin/` entrypoint surface that
-is symlinked into `~/.local/bin` and pinned by the estate-ops manifest.
+is symlinked into `~/.local/bin` and pinned by the pens-ops manifest.
 
 ## Products
 
@@ -27,7 +27,7 @@ bin/
 ## Tooling
 
 - **bin surface**: entrypoints symlinked into `~/.local/bin`, pinned by the
--  estate-ops manifest and verified by `bin-verify.sh`. A broken link is
+-  pens-ops manifest and verified by `bin-verify.sh`. A broken link is
 -  a FAIL, never a WARN.
 -  **README**: generated from the pen's own product set by
 -  `bin/readme-gen.ts`.
@@ -40,4 +40,4 @@ bin/
 
 ## License
 
-Estate internal — all rights reserved.
+pens internal — all rights reserved.

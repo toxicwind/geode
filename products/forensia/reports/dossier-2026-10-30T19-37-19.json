@@ -5,7 +5,7 @@
     {
       "detector": "agent-dir-poison",
       "severity": "critical",
-      "detail": "ambient env carries RELATIVE PI_CODING_AGENT_DIR=.tau/agent — every consumer honoring it resolves the agent dir against its own cwd (per-directory config split-brain; the local Everstore-handle analog). Fixed upstream: .profile and estate/config/dots export it absolute; something between re-exports it relative."
+      "detail": "ambient env carries RELATIVE PI_CODING_AGENT_DIR=.tau/agent — every consumer honoring it resolves the agent dir against its own cwd (per-directory config split-brain; the local Everstore-handle analog). Fixed upstream: .profile and Pens/config/dots export it absolute; something between re-exports it relative."
     },
     {
       "detector": "orphan-artifacts",

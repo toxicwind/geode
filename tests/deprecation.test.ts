@@ -13,12 +13,12 @@ const GEODE = join(import.meta.dir, "..");
 
 describe("DEPRECATED geode/ssot/ports.env", () => {
   // The file self-declares: "Delete this file once every consumer is repointed."
-  test("does not exist — geode ports come only from the estate canonical", () => {
+  test("does not exist — geode ports come only from the pens canonical", () => {
     expect(existsSync(join(GEODE, "ssot", "ports.env"))).toBe(false);
   });
 
-  test("canonical estate/config/ports.env carries every geode pen port", () => {
-    const canonical = readFileSync("/home/toxic/pens/estate/config/ports.env", "utf8");
+  test("canonical pens/config/ports.env carries every geode pen port", () => {
+    const canonical = readFileSync("/home/toxic/pens/pens/config/ports.env", "utf8");
     for (const portKey of [
       "CHALCOPYRITE_PORT",
       "BORNITE_PORT",

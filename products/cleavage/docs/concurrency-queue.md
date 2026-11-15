@@ -13,7 +13,7 @@
    consumer groups enforce the ~2-slot gate exactly-once. Con: queuing
    latency on the hot path; the architect's verdict: "queuing is shit".
 2. **Queue-free lease scheduler (RECOMMENDED)** — LeaseScheduler pattern
-   (proven in the estate: LeaseScheduler serialized probes per
+   (proven in the Pens: LeaseScheduler serialized probes per
    anomaly-dossier #4): in-flight lease per (provider, model), lease =
    kafka compacted topic entry with TTL heartbeat, not a queue position.
    Dispatchers TRY lease-acquire, get busy/fast-deny, rotate chain — never

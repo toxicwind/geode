@@ -17,7 +17,7 @@ substr: grasp-hub_ => azurite_
 
 # --- paths ------------------------------------------------------------------
 substr: pens/geode/grasp-hub => pens/geode/products/azurite
-substr: estate/grasp-hub => estate/azurite
+substr: pens/grasp-hub => pens/azurite
 substr: /grasp-hub/ => /azurite/
 substr: grasp-hub/ => azurite/
 

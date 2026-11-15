@@ -2,7 +2,7 @@
 
 Every pen has the same shape: `products/` for peer standalone checkouts,
 
-> Part of the estate's pens family (`pens/{estate,geode,barn,ranch,olympus,...}`).
+> Part of the pens's pens family (`pens/{pens,geode,barn,ranch,olympus,...}`).
 > Every pen has the same shape: `products/` for peer standalone checkouts, `docs/` for
 > pen-owned documentation, and `bin/` entrypoints symlinked into `~/.local/bin`.
 
@@ -15,23 +15,23 @@ Do not hand-edit the Products table._
 | --- | --- | --- | --- | --- |
 | **absurd-ttst** | [toxicwind/absurd-ttst](https://github.com/toxicwind/absurd-ttst) | — | TypeScript | > **PRIVATE. geode pen.** The industry is hoisted by its own petard: streaming |
 | **audit-correlator** | [toxicwind/audit-correlator](https://github.com/toxicwind/audit-correlator) | — | TypeScript | Embeds every event of ANY structured audit log (Cloudflare, GitHub, pitchfork, |
-| **azurite** | [toxicwind/azurite](https://github.com/toxicwind/azurite) | — | TypeScript | > The estate monorepo and execution engine for autonomous agent skills — grounded |
+| **azurite** | [toxicwind/azurite](https://github.com/toxicwind/azurite) | — | TypeScript | > The pens monorepo and execution engine for autonomous agent skills — grounded |
 | **bge-oracle** | [toxicwind/bge-oracle](https://github.com/toxicwind/bge-oracle) | — | TypeScript | Everyone needs embeddings. Nobody needs to re-implement fetch + cosine. **bge-oracle** is the |
-| **bornite** | [toxicwind/bornite](https://github.com/toxicwind/bornite) | 25100 | Go | > 🗺️ Part of **the ranch** — the whole inference estate, one map. |
+| **bornite** | [toxicwind/bornite](https://github.com/toxicwind/bornite) | 25100 | Go | > 🗺️ Part of **the ranch** — the whole inference pens, one map. |
 | **chalcopyrite** | [toxicwind/chalcopyrite](https://github.com/toxicwind/chalcopyrite) | 25200 | TypeScript | Every model an agent can think with should be one request away. chalcopyrite is that one request: **strategy n |
 | **cleavage** | [toxicwind/cleavage](https://github.com/toxicwind/cleavage) | — | TypeScript | — |
 | **coreelec-mcp** | [toxicwind/coreelec-mcp](https://github.com/toxicwind/coreelec-mcp) | — | TypeScript | ┌──────────────────────────────────────────────┐ |
-| **estate-skills** | [toxicwind/estate-skills](https://github.com/toxicwind/estate-skills) | — | — | — |
+| **pens-skills** | [toxicwind/pens-skills](https://github.com/toxicwind/pens-skills) | — | — | — |
 | **faceter** | [toxicwind/faceter](https://github.com/toxicwind/faceter) | — | — | — |
-| **forensia** | [toxicwind/forensia](https://github.com/toxicwind/forensia) | — | TypeScript | > **Hydration-integrity auditor** — poison-as-sensor for the pens estate. |
+| **forensia** | [toxicwind/forensia](https://github.com/toxicwind/forensia) | — | TypeScript | > **Hydration-integrity auditor** — poison-as-sensor for the pens pens. |
 | **infusion** | [toxicwind/infusion](https://github.com/toxicwind/infusion) | — | Python | — |
 | **injection-detector** | [toxicwind/injection-detector](https://github.com/toxicwind/injection-detector) | — | TypeScript | The insight: strong embedding models place **instructions and data in |
 | **lapidary** | [toxicwind/lapidary](https://github.com/toxicwind/lapidary) | — | TypeScript | lapidary cuts & polishes product names across a repo using .lapidary rule |
 | **malachite** | [toxicwind/malachite](https://github.com/toxicwind/malachite) | — | TypeScript | Green mineral, green lights that are actually green. Replaces the ad-hoc |
-| **mimetite** | [toxicwind/mimetite](https://github.com/toxicwind/mimetite) | — | TypeScript | The estate's master provider catalog (ex-pinax): provider defs, live discovery, alias map, auto-quarantine. Codegen emits tau/kappa/rust/go artifacts. |
+| **mimetite** | [toxicwind/mimetite](https://github.com/toxicwind/mimetite) | — | TypeScript | The pens's master provider catalog (ex-pinax): provider defs, live discovery, alias map, auto-quarantine. Codegen emits tau/kappa/rust/go artifacts. |
 | **multiformat-lsp** | [toxicwind/multiformat-lsp](https://github.com/toxicwind/multiformat-lsp) | — | TypeScript | — |
-| **onyx** | [toxicwind/onyx](https://github.com/toxicwind/onyx) | — | TypeScript | > The estate's **browser-session vault** — borrow, keep, and restore full |
-| **opal** | [toxicwind/theta](https://github.com/toxicwind/theta) | — | TypeScript | > **CONFIDENTIAL / PRIVATE.** This package is the estate's **EAP** (Gemini Tool |
+| **onyx** | [toxicwind/onyx](https://github.com/toxicwind/onyx) | — | TypeScript | > The pens's **browser-session vault** — borrow, keep, and restore full |
+| **opal** | [toxicwind/theta](https://github.com/toxicwind/theta) | — | TypeScript | > **CONFIDENTIAL / PRIVATE.** This package is the pens's **EAP** (Gemini Tool |
 | **pairs** | [toxicwind/pairs](https://github.com/toxicwind/pairs) | — | — | — |
 | **pcap-capture** | [toxicwind/pcap-capture](https://github.com/toxicwind/pcap-capture) | — | TypeScript | Live network capture product for the geode inference plane. Captures PC + tailscale + kite traffic via tcpdump |
 | **pens-completions** | [toxicwind/pens-completions](https://github.com/toxicwind/pens-completions) | — | TypeScript | — |
@@ -39,11 +39,11 @@ Do not hand-edit the Products table._
 | **pi-skills** | [toxicwind/pi-skills](https://github.com/toxicwind/pi-skills) | — | TypeScript | Superseded by **azurite** (@geode/azurite) — the single skills SSOT at |
 | **pseudobrookite** | [toxicwind/pseudobrookite](https://github.com/toxicwind/pseudobrookite) | — | TypeScript | the pseudo-rutile. It pretends to be an embedding layer, then tells you what it |
 | **pylae** | [toxicwind/flocksync](https://github.com/toxicwind/flocksync) | — | TypeScript | > Stacking free tiers by hand is painful — dozens of SDKs, dozens of rate limits, and no idea how much you act |
-| **scintillator** | [toxicwind/scintillator](https://github.com/toxicwind/scintillator) | — | — | > **The proof subsystem** — orthogonal, self-bootstrapping, copy-paste-runnable proofs that VERIFY the estate's |
-| **scintillator** | [toxicwind/scintillator](https://github.com/toxicwind/scintillator) | — | — | > **The proof subsystem** — orthogonal, self-bootstrapping, copy-paste-runnable proofs that VERIFY the estate' |
+| **scintillator** | [toxicwind/scintillator](https://github.com/toxicwind/scintillator) | — | — | > **The proof subsystem** — orthogonal, self-bootstrapping, copy-paste-runnable proofs that VERIFY the pens's |
+| **scintillator** | [toxicwind/scintillator](https://github.com/toxicwind/scintillator) | — | — | > **The proof subsystem** — orthogonal, self-bootstrapping, copy-paste-runnable proofs that VERIFY the pens' |
 | **selenite** | [toxicwind/selenite](https://github.com/toxicwind/selenite) | 25260 | TypeScript | PacketProwler persists everything in Firefox extension storage (browser-extension-data/packet-prowler@jojinjoh |
 | **spine** | [toxicwind/spine](https://github.com/toxicwind/spine) | — | — | — |
-| **stochos** | [toxicwind/stochos](https://github.com/toxicwind/stochos) | — | TypeScript | > στόχος (stóchos) = "target". The targeting/control surface for the estate's |
+| **stochos** | [toxicwind/stochos](https://github.com/toxicwind/stochos) | — | TypeScript | > στόχος (stóchos) = "target". The targeting/control surface for the pens's |
 | **trio** | [toxicwind/trio](https://github.com/toxicwind/trio) | — | TypeScript | ┌──────────────────────────────────┐ |
 | **triphylite** | [toxicwind/triphylite](https://github.com/toxicwind/triphylite) | — | — | — |
 
@@ -70,17 +70,17 @@ geode/
 
 - **README**: regenerate with `bun run readme` (→ `pens/toolkit/readme-gen.ts`).
 - **bin surface**: entrypoints symlinked into `~/.local/bin`, pinned by the
-  estate-ops manifest and verified by `bin-verify.sh`. A broken link is a FAIL.
-- **Full estate README**: `pens/README.md` — regenerated by `pensctl generate-all`.
+  pens-ops manifest and verified by `bin-verify.sh`. A broken link is a FAIL.
+- **Full pens README**: `pens/README.md` — regenerated by `pensctl generate-all`.
 
 ## Conventions
 
 - Products are **peer standalone checkouts**, referenced-not-owned. This repo
   tracks only its own metadata, `bin/`, and `docs/`.
 - Daemon ids use **dashes, never underscores** (`config-naming-conventions.md`).
-- Ports are declared in `pens/estate/config/ports.env` — that file is the
+- Ports are declared in `pens/pens/config/ports.env` — that file is the
   numeric SSOT; this table reads ports from it via `# owner:` attribution.
-- Runtime language across the estate is **Bun/TypeScript**.
+- Runtime language across the pens is **Bun/TypeScript**.
 - Submoduleless: products are peer clones, never gitlinks (mode 160000).
 
 ## License

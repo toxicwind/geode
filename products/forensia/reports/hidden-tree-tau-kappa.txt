@@ -85,7 +85,7 @@
 /home/toxic/pens/olympus/products/tau/.dockerignore
 /home/toxic/pens/olympus/products/tau/.gitattributes
 /home/toxic/pens/olympus/products/tau/.oxfmtrc.json
-/home/toxic/pens/olympus/products/tau/.estate-ranch-audit.json
+/home/toxic/pens/olympus/products/tau/.Pens-ranch-audit.json
 /home/toxic/pens/olympus/products/tau/tau-extensions/packages/omp-edit-committer/node_modules/.bin
 /home/toxic/pens/olympus/products/tau/tau-extensions/packages/omp-kafka/node_modules/.bin
 /home/toxic/pens/olympus/products/tau/tau-extensions/packages/omp-kafka/.gitignore

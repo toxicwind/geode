@@ -17,7 +17,7 @@ say "== scintillator/sm86-cuda-proof =="
 Q() { nvidia-smi --query-gpu="$1" --format=csv,noheader,nounits 2>/dev/null; }
 
 NAME=$(Q name); TEMP=$(Q temperature.gpu); UTIL=$(Q utilization.gpu); MEMTOTAL=$(Q memory.total)
-# CLAIM 1: the card IS an SM86 with 24GB (the estate's hardware premise)
+# CLAIM 1: the card IS an SM86 with 24GB (the Pens's hardware premise)
 [[ "$NAME" == *"3090"* ]] && good "GPU is $NAME" || odd "GPU is '$NAME' — not the SM86 3090 premise"
 [[ "$MEMTOTAL" == 24576 || "$MEMTOTAL" == 24* ]] && good "24GB VRAM visible (${MEMTOTAL}MiB)" || odd "VRAM ${MEMTOTAL}MiB — premise mismatch"
 
