@@ -6,7 +6,7 @@
  * contract the estate depends on. A green unit suite with red here means the
  * estate is lying about working.
  *
- * Credentials resolve from the secretsmith keyring (SSOT) — never hardcoded.
+ * Credentials resolve from the kryptos keyring (SSOT) — never hardcoded.
  * Ports resolve from estate/config/ports.env (names drift; SSOT is truth).
  */
 import { describe, expect, test } from "bun:test";
@@ -49,7 +49,7 @@ const p = (...keys: string[]) => {
 function key(label: string): string {
   try {
     const r = Bun.spawnSync(
-      ["secretsmith", "get", "--label", label, "--show"],
+      ["kryptos", "get", "--label", label, "--show"],
       {
         env: {
           ...process.env,

@@ -495,8 +495,8 @@
 /home/toxic/pens/olympus/products/kappa/kappa-code/packages/cli/.gitignore
 /home/toxic/pens/olympus/products/kappa/kappa-code/packages/cli/node_modules/.bin
 /home/toxic/pens/olympus/products/kappa/kappa-code/packages/cli/node_modules/.cache
-/home/toxic/pens/olympus/products/kappa/kappa-code/packages/secretsmith/.turbo
-/home/toxic/pens/olympus/products/kappa/kappa-code/packages/secretsmith/.artifacts
+/home/toxic/pens/olympus/products/kappa/kappa-code/packages/kryptos/.turbo
+/home/toxic/pens/olympus/products/kappa/kappa-code/packages/kryptos/.artifacts
 /home/toxic/pens/olympus/products/kappa/kappa-code/.turbo
 /home/toxic/pens/olympus/products/kappa/kappa-code/.changeset
 /home/toxic/pens/olympus/products/kappa/kappa-code/.editorconfig

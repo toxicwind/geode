@@ -23,18 +23,18 @@ CHALCOPYRITE_LOG_LEVEL = "info"
 
 [daemons.bornite]
 # 2026-11-10: bornite absorbed mimetite (bornite name deprecated, product
-# renamed mimetite) — the merged tree is geode/products/bornite. This daemon
+# renamed mimetite) — the merged tree is geode/products/mimetite. This daemon
 # runs the Go local/GPU serving plane (astmatrix router + llama-swap) on
 # 25100. Old run line pointed at the estate ghost path
 # (/home/toxic/pens/estate/stack/services/bornite.sh — ENOENT, exit 127).
-run = "exec /home/toxic/pens/geode/products/bornite/bin/bornite/bornite --config /home/toxic/pens/geode/products/bornite/config/bornite.yaml"
+run = "exec /home/toxic/pens/geode/products/mimetite/bin/bornite/bornite --config /home/toxic/pens/geode/products/mimetite/config/bornite.yaml"
 auto = ["start"]
 retry = true
 ready_http = "http://127.0.0.1:25100/health"
 port = 25100
 expected_port = [25100]
 depends = ["chalcopyrite"]
-dir = "/home/toxic/pens/geode/products/bornite"
+dir = "/home/toxic/pens/geode/products/mimetite"
 mise = true
 [daemons.bornite.health_http]
 url = "http://127.0.0.1:25100/health"
@@ -44,7 +44,7 @@ retries = 3
 
 [daemons.mimetite]
 # 2026-11-10: bornite absorbed mimetite (bornite name deprecated) — the
-# merged product lives in geode/products/bornite. The cloud router is
+# merged product lives in geode/products/mimetite. The cloud router is
 # router/src/server.ts in the merged tree (imports catalog/src/data.ts).
 # serve.sh was deleted 2026-11-08; the old run line ENOENT'd every start
 # (exit 127) and pitchfork's ready_http never passed, so `pitchfork restart`
@@ -55,7 +55,7 @@ retry = true
 ready_http = "http://127.0.0.1:25193/health"
 port = 25193
 expected_port = [25193]
-dir = "/home/toxic/pens/geode/products/bornite/router"
+dir = "/home/toxic/pens/geode/products/mimetite/router"
 mise = true
 [daemons.mimetite.health_http]
 url = "http://127.0.0.1:25193/health"
@@ -89,12 +89,12 @@ daemons = ["chalcopyrite", "mimetite", "bornite"]
 # The DFlash GGUF is a speculative DRAFT model (it refuses to load alone:
 # "dflash requires ctx_other to be set"), so serve the standard
 # Qwen3.5-9B Q5_K_M instead.
-run = "exec /home/toxic/pens/geode/products/bornite/engines/beellama.cpp/build-cuda86/bin/llama-server -m /home/toxic/pens/ranch/products/models/qwen3.5-9b-Q5_K_M.gguf --host 127.0.0.1 --port 25152 -ngl 99 -c 32768 --alias qwen3.5-9b-tool"
+run = "exec /home/toxic/pens/llama/bin/beellama/llama-server -m /home/toxic/pens/ranch/products/models/qwen3.5-9b-Q5_K_M.gguf --host 127.0.0.1 --port 25152 -ngl 99 -c 32768 --alias qwen3.5-9b-tool"
 auto = []
 retry = 5
 ready_http = "http://127.0.0.1:25152/health"
 port = 25152
-dir = "/home/toxic/pens/geode/products/bornite/engines/beellama.cpp/build-cuda86/bin"
+dir = "/home/toxic/pens/llama/bin/beellama"
 mise = true
 boot_start = false
 
@@ -115,13 +115,13 @@ MIMETITE_ORIGIN = "http://127.0.0.1:25193"
 # qwen2.5-3b on RTX 3090, :25196, NO cap. Local-first router default; cloud only
 # on latency budget. Replaces hand-started llama-server with a managed daemon.
 [daemons.bornite-local-lane]
-run = "exec /home/toxic/pens/geode/products/bornite/bornite-local-lane.sh"
+run = "exec /home/toxic/pens/geode/products/mimetite/bornite-local-lane.sh"
 auto = ["start"]
 retry = true
 ready_http = "http://127.0.0.1:25196/health"
 port = 25196
 expected_port = [25196]
-dir = "/home/toxic/pens/geode/products/bornite"
+dir = "/home/toxic/pens/geode/products/mimetite"
 mise = true
 [daemons.bornite-local-lane.health_http]
 url = "http://127.0.0.1:25196/health"
