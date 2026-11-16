@@ -309,17 +309,30 @@ export function getCandidateRoutes(modelId: string): ProviderRoute[] {
 
   const pushCandidate = (provider: ProviderDef, targetModel: string) => {
     if (provider.routerLocal || provider.enabled === false) return;
-    const tag = routingId(provider.name, targetModel);
+    // Normalize tau-side effort suffixes (:low/:medium/:high/:xhigh/:max)
+    // when the provider only knows the base model. The suffix is a client
+    // routing variant, not an upstream model id — sending it verbatim 404s
+    // (verified live 2026-11-15: freeinference rejects deepseek-v4-flash:low).
+    let wireModel = targetModel;
+    const effortMatch = /^(.*):(low|medium|high|xhigh|max)$/i.exec(targetModel);
+    if (effortMatch) {
+      const base = effortMatch[1]!;
+      const known =
+        provider.seeds?.some((s) => s === base || s === `${provider.name}/${base}` || s.endsWith(`/${base}`)) ??
+        false;
+      if (known) wireModel = base;
+    }
+    const tag = routingId(provider.name, wireModel);
     if (seen.has(tag)) return;
     seen.add(tag);
 
-    const isEmb = EMBEDDING_MODELS.has(targetModel);
+    const isEmb = EMBEDDING_MODELS.has(wireModel);
     const seedMatch = provider.seeds?.find(
-      (s) => s === targetModel || s === `${provider.name}/${targetModel}` || s.endsWith(`/${targetModel}`)
+      (s) => s === wireModel || s === `${provider.name}/${wireModel}` || s.endsWith(`/${wireModel}`)
     );
     out.push({
       provider,
-      model: seedMatch ?? targetModel,
+      model: seedMatch ?? wireModel,
       isEmbeddings: isEmb,
     });
   };
@@ -489,6 +502,8 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
   // shed us with a concurrency 429 (diversity: skip them in the walk).
   const triedProviders = new Set<string>();
   const shedProviders = new Set<string>();
+  // Last non-2xx upstream response (status + body) for honest error surfacing.
+  let lastUpstreamError: { status: number; body: string } | undefined;
 
   // Try candidates in order
   for (let cIdx = 0; cIdx < allCandidates.length; cIdx++) {
@@ -624,6 +639,9 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
       }
 
       const bodyText = await upstream.clone().text();
+      if (upstream.status >= 400) {
+        lastUpstreamError = { status: upstream.status, body: bodyText };
+      }
 
       // Permanent failure checks: trip aggressively
       if (upstream.status === 410) {
@@ -677,8 +695,13 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
 
         // Quota/budget 429: honor the stated wait once (bounded), then let the
         // walk continue to a different provider. Also no breaker trip.
-        if (quota && serverWaitMs > 0) {
-          await new Promise((resolve) => setTimeout(resolve, Math.min(serverWaitMs, 30_000)));
+        if (quota) {
+          lastUpstreamError = { status: upstream.status, body: bodyText };
+          // Honor the server-stated wait; default to 1s when absent so a
+          // rate_limit_exceeded / budget 429 does not fall through to a
+          // misleading 503 (circuit_breaker_open) in the same iteration.
+          const quotaWait = serverWaitMs > 0 ? serverWaitMs : 1000;
+          await new Promise((resolve) => setTimeout(resolve, Math.min(quotaWait, 30_000)));
         }
       }
     } catch (err: unknown) {
@@ -688,6 +711,18 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
     }
   }
 
+  // If every candidate failed with a real upstream error (429 quota/shed,
+  // 4xx), surface the LAST one honestly instead of a misleading 503
+  // circuit_breaker_open. Only fall back to the generic 503 when the walk
+  // produced no upstream error at all (all tripped / skipped).
+  if (lastUpstreamError) {
+    return json(lastUpstreamError.status, {
+      error: {
+        code: "upstream_error",
+        message: `upstream ${lastUpstreamError.status} for model ${initialRoute.model}: ${lastUpstreamError.body.slice(0, 300)}`,
+      },
+    });
+  }
   return json(503, {
     error: {
       code: "circuit_breaker_open",
