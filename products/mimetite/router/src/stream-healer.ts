@@ -132,6 +132,14 @@ export function healSseResponse(response: Response): Response {
       while ((nl = pending.indexOf("\n")) >= 0) {
         const line = pending.slice(0, nl);
         pending = pending.slice(nl + 1);
+        // Preserve blank lines: they are the SSE event separators. Dropping
+        // them merges every `data:` frame into one event (data joined by \n),
+        // which breaks JSON.parse on the client side (verified live
+        // 2026-11-15: tau postOpenAIStream decoded 0 events from the router).
+        if (line.length === 0) {
+          controller.enqueue(encoder.encode("\n"));
+          continue;
+        }
         const healed = healSseLine(line, healer);
         if (healed.length > 0) {
           controller.enqueue(encoder.encode(`${healed}\n`));
