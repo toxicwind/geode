@@ -277,6 +277,23 @@ export async function refreshLiveModels(provider: ProviderDef): Promise<Set<stri
   }
 }
 
+/**
+ * Warm the live model discovery cache for every provider that has a key (or
+ * is auth-free). Fired at startup and re-fired when the shared /v1/models
+ * list is requested. Discovery is best-effort: failures keep the previous
+ * set (or empty) and never crash the router.
+ */
+async function warmAllDiscovery(): Promise<void> {
+  const jobs = PROVIDER_DEFS.filter(
+    (p) => !p.routerLocal && p.enabled !== false && (p.auth === "none" || resolveProviderKey(p))
+  ).map((p) =>
+    refreshLiveModels(p).catch(() => {
+      // ignore per-provider discovery errors
+    }),
+  );
+  await Promise.all(jobs);
+}
+
 // ─── Routing & Dynamic Deciding ──────────────────────────────────────────────
 
 export function routeModel(modelId: string): ProviderRoute | undefined {
@@ -452,18 +469,38 @@ function buildModelList() {
   const aliasSet = new Set(Object.keys(MODEL_ALIASES));
   const ids = new Set<string>();
   const ownedBy: Record<string, string> = {};
+  // Per-model metadata: context length, thinking tier, max output tokens.
+  const meta = new Map<string, { context_length?: number; thinking?: string; max_output_tokens?: number }>();
+
+  const addModel = (provider: ProviderDef, model: string) => {
+    if (deadSet.has(model)) return;
+    if (circuitBreaker.isTripped(provider.name, model).tripped) return;
+    ids.add(model);
+    ownedBy[model] = provider.name;
+    const ctx = provider.contextLengths?.[model];
+    const override = provider.modelOverrides?.[model];
+    const maxOut =
+      (provider.maxOutputTokens as Record<string, number> | undefined)?.[model] ??
+      provider.defaultMaxOutputTokens;
+    if (ctx !== undefined || override || maxOut !== undefined) {
+      meta.set(model, {
+        context_length: ctx,
+        thinking: override?.thinking ?? provider.defaultThinking,
+        max_output_tokens: maxOut,
+      });
+    }
+  };
 
   for (const provider of PROVIDER_DEFS) {
     if (provider.routerLocal || provider.enabled === false) continue;
     // Don't advertise providers that have active auth failure trips
     if (circuitBreaker.isTripped(provider.name).tripped) continue;
 
-    for (const seed of provider.seeds ?? []) {
-      if (deadSet.has(seed)) continue;
-      if (circuitBreaker.isTripped(provider.name, seed).tripped) continue;
-      ids.add(seed);
-      ownedBy[seed] = provider.name;
-    }
+    for (const seed of provider.seeds ?? []) addModel(provider, seed);
+    for (const m of provider.staticModels ?? []) addModel(provider, m);
+    // Include live-discovered models (adapter: "openai" / dynamic) so the
+    // advertised list tracks the upstream /v1/models, not just cold-start seeds.
+    for (const m of liveDiscovery.get(provider.name)?.models ?? []) addModel(provider, m);
   }
   for (const alias of aliasSet) {
     if (deadSet.has(alias)) continue;
@@ -471,6 +508,11 @@ function buildModelList() {
     if (target && circuitBreaker.isTripped(target[0], target[1]).tripped) continue;
     ids.add(alias);
     ownedBy[alias] = target ? target[0] : "pens-catalog";
+    if (target) {
+      const provider = PROVIDER_DEFS.find((p) => p.name === target[0]);
+      const ctx = provider?.contextLengths?.[target[1]];
+      if (ctx !== undefined) meta.set(alias, { context_length: ctx });
+    }
   }
 
   return {
@@ -480,6 +522,7 @@ function buildModelList() {
       object: "model" as const,
       created: now,
       owned_by: ownedBy[id] ?? "pens-catalog",
+      ...(meta.get(id) ?? {}),
     })),
   };
 }
@@ -890,6 +933,8 @@ if (import.meta.main) {
         return json(200, { ok, service: "unified-router", port: PORT, catalog: true, breaker: circuitBreaker.snapshot() });
       }
       if (r.method === "GET" && url.pathname === "/v1/models") {
+        // Warm discovery so the advertised list tracks the live upstreams.
+        await warmAllDiscovery();
         return json(200, buildModelList());
       }
       if (r.method === "POST" && url.pathname === "/admin/breaker/reset") {
@@ -929,4 +974,7 @@ if (import.meta.main) {
     },
   });
   console.log(`unified-router listening on 127.0.0.1:${PORT}`);
+  // Warm model discovery in the background so /v1/models is populated shortly
+  // after boot without blocking the first request.
+  void warmAllDiscovery();
 }
