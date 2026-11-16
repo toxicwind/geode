@@ -1,3 +1,7 @@
+import { getDialectDefinition } from "./dialect/factory";
+import type { Dialect } from "./dialect/identity";
+import type { InbandScanner } from "./dialect/types";
+
 /**
  * stream-healer.ts — stateful SSE egress markup healer for mimetite.
  *
@@ -106,6 +110,41 @@ function healSseLine(line: string, healer: StreamMarkupHealer): string {
   return healer.pushChunk(line);
 }
 
+function healSseLineDialect(line: string, normalizer: DialectEgressNormalizer): string {
+  if (line.startsWith("data:")) {
+    const payloadStart = line.startsWith("data: ") ? 6 : 5;
+    const payload = line.slice(payloadStart);
+    // Real SSE chat payloads are JSON: the tool-call markup lives inside
+    // `choices[].delta.content` / `reasoning_content` string fields. Decode,
+    // run those fields through the dialect scanner, and re-encode — otherwise
+    // the scanner would see JSON-escaped quotes and miss the tags.
+    try {
+      const parsed = JSON.parse(payload);
+      if (parsed && typeof parsed === "object" && Array.isArray(parsed.choices)) {
+        // Always take the JSON-aware path for valid chat-completions payloads:
+        // feed each delta string field through the scanner and re-encode. We
+        // must NOT fall through to raw-text processing here even when nothing
+        // changed — feeding the whole JSON string to the scanner would mangle
+        // the escaped quotes.
+        for (const ch of parsed.choices) {
+          const delta = ch?.delta;
+          if (!delta || typeof delta !== "object") continue;
+          for (const field of ["content", "reasoning_content"]) {
+            if (typeof delta[field] === "string") {
+              delta[field] = normalizer.pushChunk(delta[field]);
+            }
+          }
+        }
+        return `data: ${JSON.stringify(parsed)}`;
+      }
+    } catch {
+      // Not JSON — fall through to raw-text processing below.
+    }
+    return `data: ${normalizer.pushChunk(payload)}`;
+  }
+  return normalizer.pushChunk(line);
+}
+
 /**
  * Wrap an upstream `text/event-stream` Response so every outbound chunk is
  * healed before it leaves the router. SSE framing (`data:`/`event:`/`id:`/
@@ -114,16 +153,100 @@ function healSseLine(line: string, healer: StreamMarkupHealer): string {
  *
  * Non-SSE responses pass through untouched.
  */
-export function healSseResponse(response: Response): Response {
+/**
+ * DialectEgressNormalizer — opt-in, dialect-aware SSE egress normalizer.
+ *
+ * When the router's `dialect.enabled` feature flag is on, the egress path
+ * resolves the routed model's dialect and runs the upstream stream through its
+ * in-band scanner. Tool-call markup is intercepted and re-rendered in the
+ * dialect's canonical form (`<invoke>`/`<parameter>` for XML-family dialects);
+ * all other text (including delimited thinking) passes through untouched.
+ *
+ * This is a deliberate, gated transformation: the router is a transparent
+ * proxy, so it defaults OFF and preserves the legacy passthrough + generic
+ * markup healing exactly. It exists to give the ported dialect engine a real
+ * runtime seam without changing default behavior.
+ */
+export class DialectEgressNormalizer {
+  private readonly scanner: InbandScanner;
+  private readonly dialect: Dialect;
+  private pendingTool: { name: string; args: Record<string, unknown> } | null = null;
+
+  constructor(dialect: Dialect) {
+    this.dialect = dialect;
+    this.scanner = getDialectDefinition(dialect).createScanner({});
+  }
+
+  /** Feed a chunk; returns the normalized text to emit. */
+  pushChunk(chunk: string): string {
+    const events = this.scanner.feed(chunk);
+    let out = "";
+    for (const ev of events) {
+      switch (ev.type) {
+        case "text":
+          out += ev.text;
+          break;
+        case "toolStart":
+          this.pendingTool = { name: ev.name, args: {} };
+          break;
+        case "toolArgDelta":
+          if (this.pendingTool) {
+            const key = ev.key;
+            const prev = this.pendingTool.args[key];
+            this.pendingTool.args[key] = (typeof prev === "string" ? prev : "") + ev.delta;
+          }
+          break;
+        case "toolEnd":
+          if (this.pendingTool) {
+            const def = getDialectDefinition(this.dialect);
+            out += def.renderToolCall(
+              { id: ev.id, name: ev.name, arguments: ev.arguments ?? this.pendingTool.args },
+              {},
+            );
+            this.pendingTool = null;
+          }
+          break;
+        default:
+          // thinkingStart/Delta/End, impliedThinkingEnd: leave as-is (the raw
+          // text already flowed through as `text` when parseThinking is off).
+          break;
+      }
+    }
+    return out;
+  }
+
+  flush(): string {
+    const events = this.scanner.flush();
+    let out = "";
+    for (const ev of events) {
+      if (ev.type === "text") out += ev.text;
+      else if (ev.type === "toolEnd" && this.pendingTool) {
+        const def = getDialectDefinition(this.dialect);
+        out += def.renderToolCall(
+          { id: ev.id, name: ev.name, arguments: ev.arguments ?? this.pendingTool.args },
+          {},
+        );
+        this.pendingTool = null;
+      }
+    }
+    return out;
+  }
+}
+
+export function healSseResponse(response: Response, opts: { dialect?: Dialect } = {}): Response {
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("text/event-stream") || !response.body) {
     return response;
   }
 
-  const healer = new StreamMarkupHealer();
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   let pending = "";
+  // When a dialect is supplied (router `dialect.enabled` on), normalize the
+  // stream through the dialect scanner. Otherwise use the legacy generic
+  // markup healer — byte-identical to prior behavior.
+  const dialectNormalizer = opts.dialect ? new DialectEgressNormalizer(opts.dialect) : null;
+  const healer = dialectNormalizer ? null : new StreamMarkupHealer();
 
   const transform = new TransformStream<Uint8Array, Uint8Array>({
     transform(chunk, controller) {
@@ -140,7 +263,9 @@ export function healSseResponse(response: Response): Response {
           controller.enqueue(encoder.encode("\n"));
           continue;
         }
-        const healed = healSseLine(line, healer);
+        const healed = dialectNormalizer
+          ? healSseLineDialect(line, dialectNormalizer)
+          : healSseLine(line, healer!);
         if (healed.length > 0) {
           controller.enqueue(encoder.encode(`${healed}\n`));
         }
@@ -148,12 +273,14 @@ export function healSseResponse(response: Response): Response {
     },
     flush(controller) {
       if (pending.length > 0) {
-        const healed = healSseLine(pending, healer);
+        const healed = dialectNormalizer
+          ? healSseLineDialect(pending, dialectNormalizer)
+          : healSseLine(pending, healer!);
         if (healed.length > 0) {
           controller.enqueue(encoder.encode(healed));
         }
       }
-      const tail = healer.flush();
+      const tail = dialectNormalizer ? dialectNormalizer.flush() : healer!.flush();
       if (tail.length > 0) {
         controller.enqueue(encoder.encode(tail));
       }

@@ -198,15 +198,8 @@ export function retryAfterMs(status: number, bodyText: string, headers: Headers)
   return 0;
 }
 
-/** True when the 429 body names a concurrency shed (vs quota/budget). */
-export function isConcurrencyShed(bodyText: string): boolean {
-  return /concurrent|too many concurrent|concurrency_limit|slot/i.test(bodyText);
-}
-
-/** True when the 429 body names quota/budget exhaustion (walks fallback chain). */
-export function isQuotaExhausted(bodyText: string): boolean {
-  return /quota|budget|daily cost|exhausted|spend caps?|rate.limit|exceeded/i.test(bodyText);
-}
+// 429 classification moved to circuit-breaker/modules/ (Lua modules). The
+// retryAfterMs() parser above remains here as a shared util.
 
 // ─── 3. Fallback diversity ───────────────────────────────────────────────────
 

@@ -11,12 +11,29 @@
  */
 import { readFileSync } from "node:fs";
 import { PROVIDER_DEFS, MODEL_ALIASES, DEAD_MODEL_IDS } from "../../catalog/src/data.ts";
-import { isUaBlocked, resolveUserAgent, uaRetryCandidate } from "../../catalog/src/ua.ts";
+import { isUaBlocked, resolveUserAgent, TAU_UA, uaRetryCandidate } from "../../catalog/src/ua.ts";
 import { joinBaseUrl } from "../../catalog/src/adapters.ts";
 import type { ProviderDef } from "../../catalog/src/types.ts";
-import { providerSemaphore, retryAfterMs, isConcurrencyShed, isQuotaExhausted, acquireProviderSlot, PROVIDER_MAX_PARALLEL, recordSuccess, recordCongestion, congestionWindowsSnapshot, estimateRequestTokens, orderCandidatesByFit, pinSessionProvider, pinnedSessionProvider } from "./primitives.ts";
+import { providerSemaphore, retryAfterMs, acquireProviderSlot, PROVIDER_MAX_PARALLEL, recordSuccess, recordCongestion, congestionWindowsSnapshot, estimateRequestTokens, orderCandidatesByFit, pinSessionProvider, pinnedSessionProvider } from "./primitives.ts";
+import { classify } from "./faults/index.ts";
+import { features } from "./config";
 import { qualify as routingId } from "./shapes.ts";
 import { healSseResponse } from "./stream-healer.ts";
+import { pushModelSnapshot, subscribeModelSnapshots } from "./model-sse.ts";
+import { buildArgShapes, coerceToolCallArguments, coerceRequestToolCalls } from "./coercion.ts";
+import { preferredDialect } from "./dialect/identity.ts";
+
+// Coalesce discovery changes into a single snapshot push per cycle, and only
+// when the advertised list actually changed — avoids flooding the SSE ring
+// with one near-identical snapshot per provider per warm.
+let lastSnapshotJson = "";
+function pushIfChanged(): void {
+  const list = buildModelList();
+  const j = JSON.stringify(list);
+  if (j === lastSnapshotJson) return;
+  lastSnapshotJson = j;
+  pushModelSnapshot(list);
+}
 import { applyLaneIsolation } from "./lane-router.ts";
 
 export type ProviderRoute = {
@@ -74,6 +91,9 @@ const UPSTREAM_HEADERS_TIMEOUT_MS = 30_000;
 // re-probed, so a model that comes back online self-heals without admin action.
 // Genuinely dead models re-trip on the next probe (operator: "reset on build").
 const DEAD_MODEL_TRIP_MS = 24 * 60 * 60 * 1000; // 24h
+
+/** Fallback max output tokens when a provider/model declares none. */
+const DEFAULT_MAX_OUTPUT_TOKENS = 8192;
 
 export type BreakerEntry = {
   trippedUntil: number;
@@ -225,6 +245,7 @@ type LiveDiscoveryCache = {
 const liveDiscovery = new Map<string, LiveDiscoveryCache>();
 const DISCOVERY_TTL_MS = 300_000; // 5 minutes
 
+
 export async function refreshLiveModels(provider: ProviderDef): Promise<Set<string>> {
   const key = resolveProviderKey(provider);
   if (!key && provider.auth !== "none") return new Set();
@@ -292,6 +313,7 @@ async function warmAllDiscovery(): Promise<void> {
     }),
   );
   await Promise.all(jobs);
+  pushIfChanged();
 }
 
 // ─── Routing & Dynamic Deciding ──────────────────────────────────────────────
@@ -442,6 +464,7 @@ export function failoverCandidates(modelId: string): Array<{ provider: ProviderD
 
 const PORT = Number(process.env.UNIFIED_ROUTER_PORT ?? process.env.MIMETITE_PORT ?? 8080);
 const CLIENT_KEYS = (process.env.MIMETITE_CLIENT_KEYS ?? "").split(",").map((k) => k.trim()).filter(Boolean);
+const DIALECT_ENABLED = features().dialect.enabled;
 
 function loopback(r: Request): boolean {
   const host = new URL(r.url).hostname;
@@ -464,7 +487,7 @@ function json(status: number, body: unknown): Response {
 }
 
 function buildModelList() {
-  const now = Math.floor(new Date("2026-11-02T08:51:42.000Z").getTime() / 1000);
+  const now = Math.floor(Date.now() / 1000);
   const deadSet = new Set(DEAD_MODEL_IDS);
   const aliasSet = new Set(Object.keys(MODEL_ALIASES));
   const ids = new Set<string>();
@@ -481,14 +504,16 @@ function buildModelList() {
     const override = provider.modelOverrides?.[model];
     const maxOut =
       (provider.maxOutputTokens as Record<string, number> | undefined)?.[model] ??
-      provider.defaultMaxOutputTokens;
-    if (ctx !== undefined || override || maxOut !== undefined) {
-      meta.set(model, {
-        context_length: ctx,
-        thinking: override?.thinking ?? provider.defaultThinking,
-        max_output_tokens: maxOut,
-      });
-    }
+      provider.defaultMaxOutputTokens ??
+      DEFAULT_MAX_OUTPUT_TOKENS;
+    // Attach metadata for EVERY advertised model: context when declared, and
+    // always reasoning tier + max-output so clients (kilo/tau) get complete
+    // per-model facts even for live-discovered ids not in contextLengths.
+    meta.set(model, {
+      context_length: ctx,
+      thinking: override?.thinking ?? provider.defaultThinking ?? "auto",
+      max_output_tokens: maxOut,
+    });
   };
 
   for (const provider of PROVIDER_DEFS) {
@@ -511,7 +536,11 @@ function buildModelList() {
     if (target) {
       const provider = PROVIDER_DEFS.find((p) => p.name === target[0]);
       const ctx = provider?.contextLengths?.[target[1]];
-      if (ctx !== undefined) meta.set(alias, { context_length: ctx });
+      meta.set(alias, {
+        context_length: ctx,
+        thinking: provider?.defaultThinking ?? "auto",
+        max_output_tokens: provider?.defaultMaxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
+      });
     }
   }
 
@@ -525,15 +554,6 @@ function buildModelList() {
       ...(meta.get(id) ?? {}),
     })),
   };
-}
-
-function isRetryableSaturation(status: number, bodyText: string): boolean {
-  return (
-    status === 429 ||
-    status === 503 ||
-    status === 409 ||
-    (status >= 500 && /(concurrency|too many|rate.?limit|busy|overload|temporarily)/i.test(bodyText))
-  );
 }
 
 // ─── Proxy Upstream Engine ───────────────────────────────────────────────────
@@ -607,6 +627,9 @@ async function proxyUpstream(
           parsed.input_type = "query";
           parsed.truncate = parsed.truncate ?? "END";
         }
+        if (path === "/v1/chat/completions" && features().coercion.enabled) {
+          coerceRequestToolCalls(parsed);
+        }
         body = JSON.stringify(parsed);
       }
     } catch {}
@@ -635,18 +658,22 @@ async function proxyUpstream(
       if (v) headers[h] = v;
     }
 
-    // Resolve the provider's outbound identity from the UA registry.
-    // Precedence: literal `userAgent` > named `ua` profile > per-model
-    // `modelOverrides[model].ua` > caller's UA > mimetite id.
+    // Resolve the provider's outbound identity from the UA registry. The
+    // router OWNS the upstream User-Agent (tau and kappa both route through
+    // it): a provider's literal `userAgent` or named `ua` profile wins, a
+    // caller's UA is honored, and anything unresolved falls back to the
+    // estate's canonical tau identity — the wire never leaves a UA undefined.
     // This is a routing input, not cosmetics: Cloudflare-fronted upstreams
     // answer a non-browser signature with `403 error 1010 "blocked based on
     // your browser's signature"` even when the key is perfect, and
     // freeinference serves a different /v1/models catalog per UA.
     const viaUA = r.headers.get("user-agent")?.trim();
     const modelUa = route.provider.modelOverrides?.[route.model]?.ua;
-    const wireUA =
-      resolveUserAgent({ userAgent: route.provider.userAgent, ua: modelUa ?? route.provider.ua }, viaUA) ??
-      `mimetite/${(process.env.PI_VERSION ?? "unified-router").trim()}`;
+    const resolvedUa = resolveUserAgent(
+      { userAgent: route.provider.userAgent, ua: modelUa ?? route.provider.ua },
+      viaUA,
+    );
+    const wireUA = resolvedUa.ua ?? TAU_UA;
     headers["user-agent"] = wireUA;
 
     // Per-provider concurrency gate: never fire more than the provider's cap
@@ -706,7 +733,11 @@ async function proxyUpstream(
           });
         }
         if (sessionId) pinSessionProvider(sessionId, route.provider.name);
-        return healSseResponse(upstream); // SSE streams pass through with egress markup healing
+        // SSE egress: when the dialect feature is enabled, normalize the stream
+        // through the routed model's dialect scanner (opt-in; default OFF
+        // preserves the legacy generic markup healing byte-for-byte).
+        const dialectOpt = features().dialect.enabled ? { dialect: preferredDialect(route.model) } : {};
+        return healSseResponse(upstream, dialectOpt); // SSE streams pass through with egress markup healing
       }
 
       const bodyText = await upstream.clone().text();
@@ -714,92 +745,61 @@ async function proxyUpstream(
         lastUpstreamError = { status: upstream.status, body: bodyText };
       }
 
-      // Permanent failure checks: trip aggressively
-      if (upstream.status === 410) {
-        circuitBreaker.trip(route.provider.name, route.model, `410 Gone: ${bodyText.slice(0, 100)}`, Number.MAX_SAFE_INTEGER);
-        continue;
-      }
-      if (upstream.status === 401 || upstream.status === 403) {
-        // A 403 here is ambiguous: Cloudflare's fingerprint block
-        // ("error 1010 ... blocked based on your browser's signature") and a
-        // genuine credential rejection look identical by status alone. Reading
-        // the body is the only way to tell them apart, and conflating them is
-        // what took groq/zen/bitdeer offline for 30 minutes at a time on a
-        // perfectly valid key.
-        if (isUaBlocked(bodyText)) {
-          const retryUA = uaRetryCandidate(wireUA);
-          if (retryUA) {
-            // One retry with the canonical browser identity. If the key was
-            // fine and only the fingerprint was wrong, this succeeds.
-            const retry = await fetch(url, {
-              method: "POST",
-              headers: { ...headers, "user-agent": retryUA },
-              body,
-              signal: upstreamSignal,
-            });
-            if (retry.status < 400) {
-              circuitBreaker.recordSuccess(route.provider.name, route.model);
-              recordSuccess(route.provider.name);
-              return healSseResponse(retry);
-            }
-            const retryBody = await retry.clone().text();
-            if (!isUaBlocked(retryBody)) {
-              // The UA retry got past Cloudflare — the real answer is
-              // underneath, so judge the credential on that.
-              lastUpstreamError = { status: retry.status, body: retryBody };
-              if (retry.status === 401) {
-                circuitBreaker.trip(route.provider.name, undefined, `auth failed (${retry.status}) after UA retry: ${retryBody.slice(0, 100)}`, 1_800_000);
+      // ─── Modular fault classification ─────────────────────────────────────
+      // Each fault type is a `.lua` module under faults/modules/. The
+      // worker classifies (status + body) → policy; this switch executes it.
+      // Converted one-by-one from the old inline branches:
+      //   gone (410) · ua-blocked (cf-1010) · auth-failed (401/403) ·
+      //   not-found (404) · concurrency-shed · quota-exhausted ·
+      //   opencode-429-free-tier-timer
+      const cls = await classify(upstream.status, bodyText, {
+        provider: route.provider.name,
+        model: route.model,
+      });
+
+      if (cls.policy) {
+        const p = cls.policy;
+
+        // TRIP — hard lockout for a duration (auth, gone, not-found, ua,
+        // opencode timer). Scope decides provider-level vs model-level.
+        if (p.action === "trip") {
+          // UA-blocked special: try the canonical browser identity once before
+          // tripping — a valid key behind a wrong fingerprint succeeds on retry.
+          if (cls.matched === "ua-blocked") {
+            const retryUA = uaRetryCandidate(wireUA);
+            if (retryUA) {
+              const retry = await fetch(url, {
+                method: "POST",
+                headers: { ...headers, "user-agent": retryUA },
+                body,
+                signal: upstreamSignal,
+              });
+              if (retry.status < 400) {
+                circuitBreaker.recordSuccess(route.provider.name, route.model);
+                recordSuccess(route.provider.name);
+                return healSseResponse(retry);
               }
-              continue;
+              const retryBody = await retry.clone().text();
+              if (!isUaBlocked(retryBody)) {
+                lastUpstreamError = { status: retry.status, body: retryBody };
+                if (retry.status === 401) {
+                  circuitBreaker.trip(route.provider.name, undefined, `auth failed (${retry.status}) after UA retry: ${retryBody.slice(0, 100)}`, 1_800_000);
+                }
+                continue;
+              }
             }
           }
-          // Still fingerprint-blocked as a browser. Short cooldown, and say so:
-          // this is an egress/IP reputation problem, not a dead key.
-          circuitBreaker.trip(
-            route.provider.name,
-            undefined,
-            `ua_blocked: upstream rejected the client fingerprint even as a browser (cf-1010) — egress IP reputation, not a credential fault`,
-            300_000,
-          );
+          const target = p.scope === "provider" ? undefined : route.model;
+          circuitBreaker.trip(route.provider.name, target, `${cls.matched}: ${p.reason}`, p.retryAfterMs ?? 300_000);
           continue;
         }
-        circuitBreaker.trip(route.provider.name, undefined, `auth failed (${upstream.status}): ${bodyText.slice(0, 100)}`, 1_800_000);
-        continue;
-      }
-      if (upstream.status === 404) {
-        circuitBreaker.trip(route.provider.name, route.model, `404 Not Found: ${bodyText.slice(0, 100)}`, 3_600_000);
-        continue;
-      }
 
-      // Retryable saturation: 429 concurrency / rate limit
-      if (isRetryableSaturation(upstream.status, bodyText)) {
-        const serverWaitMs = retryAfterMs(upstream.status, bodyText, upstream.headers);
-        const shed = isConcurrencyShed(bodyText);
-        const quota = isQuotaExhausted(bodyText);
-        // A quota/budget 429 is NOT a slot shed: the provider may still have a
-        // free slot, so diversity keeps it eligible. Only a concurrency shed
-        // marks the provider as "slots full — do not circle back".
-        if (shed) {
+        // SHED — concurrency: mark slots-full, wait + resend for a bounded
+        // budget, then diversify. NEVER trip the breaker.
+        if (p.action === "shed") {
           shedProviders.add(route.provider.name);
           recordCongestion(route.provider.name); // AIMD: shrink the learned window
-        }
-
-        // NEVER trip the breaker on a 429 — it is congestion, not a dead model.
-        // The shared lease serializes router-internal traffic; a 429 here means
-        // an external holder (a direct tau/kappa/hermes lane) has the slot.
-        // Hold and retry with the server's stated wait as the FLOOR, then
-        // diversify to the next candidate. Tripping the breaker here is what
-        // caused the 503 storm: every subagent request 503'd instantly for
-        // 5-15s, retried with 15-70s backoff, collided again, re-tripped.
-        if (shed) {
-          // 429 on a concurrency shed is a "wait and resend", not a failure:
-          // the shared lease already serialized router-internal traffic, so a
-          // shed here means an external holder has the slot. Honor the
-          // server-stated wait as a floor, then resend — repeatedly, for a
-          // bounded budget — before diversifying. This is the freeinference
-          // "1 concurrent request" reality: a generation can hold the slot for
-          // 20-30s, so resending for a few seconds is the difference between
-          // success and a spurious upstream 429.
+          const serverWaitMs = retryAfterMs(upstream.status, bodyText, upstream.headers);
           const shedWaitBudgetMs = 30_000;
           const shedDeadline = Date.now() + shedWaitBudgetMs;
           let attempt = 1;
@@ -817,18 +817,20 @@ async function proxyUpstream(
               if (sessionId) pinSessionProvider(sessionId, route.provider.name);
               return healSseResponse(retry);
             }
-            if (isQuotaExhausted(await retry.clone().text())) break; // budget reset: one honored wait, then diversify
+            const retryCls = await classify(retry.status, await retry.clone().text(), {
+              provider: route.provider.name,
+              model: route.model,
+            });
+            if (retryCls.policy?.action === "quota") break; // budget reset: one honored wait, then diversify
           }
           continue; // still saturated → next candidate; NO breaker trip
         }
 
-        // Quota/budget 429: honor the stated wait once (bounded), then let the
+        // QUOTA — budget: honor the stated wait once (bounded), then let the
         // walk continue to a different provider. Also no breaker trip.
-        if (quota) {
+        if (p.action === "quota") {
           lastUpstreamError = { status: upstream.status, body: bodyText };
-          // Honor the server-stated wait; default to 1s when absent so a
-          // rate_limit_exceeded / budget 429 does not fall through to a
-          // misleading 503 (circuit_breaker_open) in the same iteration.
+          const serverWaitMs = retryAfterMs(upstream.status, bodyText, upstream.headers);
           const quotaWait = serverWaitMs > 0 ? serverWaitMs : 1000;
           await new Promise((resolve) => setTimeout(resolve, Math.min(quotaWait, 30_000)));
         }
@@ -869,18 +871,26 @@ function handleModelsSse(_r: Request): Response {
   let unsub: (() => void) | undefined;
   const stream = new ReadableStream({
     start(controller) {
-      // Send initial models snapshot
-      const initial = buildModelList();
+      // keep-alive first; the ring-buffer replay below delivers the current
+      // snapshot (and history) immediately.
       controller.enqueue(new TextEncoder().encode(`: keep-alive\n\n`));
-      controller.enqueue(
-        new TextEncoder().encode(`event: models_snapshot\ndata: ${JSON.stringify(initial)}\n\n`)
-      );
 
       // Subscribe to circuit breaker updates
       unsub = circuitBreaker.subscribe((event, data) => {
         try {
           controller.enqueue(
             new TextEncoder().encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+          );
+        } catch {}
+      });
+
+      // Replay buffered snapshots + live discovery pushes (ring-buffer
+      // pattern borrowed from sse-forward.ts). Fresh clients immediately get
+      // the current state, then every discovery refresh.
+      const unsubSnapshots = subscribeModelSnapshots((ev) => {
+        try {
+          controller.enqueue(
+            new TextEncoder().encode(`event: ${ev.type}\ndata: ${JSON.stringify(ev.data)}\n\n`)
           );
         } catch {}
       });
@@ -896,6 +906,7 @@ function handleModelsSse(_r: Request): Response {
     },
     cancel() {
       unsub?.();
+      unsubSnapshots();
     },
   });
 
@@ -920,6 +931,12 @@ function healthCheck(): boolean {
 }
 
 if (import.meta.main) {
+  // Periodic live-discovery refresh: keeps the advertised model list (and the
+  // /v1/models/sse snapshots) current without a manual restart. Same cadence
+  // as the discovery TTL.
+  setInterval(() => {
+    warmAllDiscovery().catch(() => {});
+  }, DISCOVERY_TTL_MS);
   Bun.serve({
     port: PORT,
     idleTimeout: 60,
