@@ -225,3 +225,101 @@ export function diverseCandidates(
   if (shedProviders.size === 0) return candidates;
   return candidates.filter((c) => !shedProviders.has(c.provider.name) || !triedProviders.has(c.provider.name));
 }
+
+// ─── 4. Not-blind selection: context-size + KV/session awareness ────────────
+
+/**
+ * Coarse token estimate from a request body. Good enough to compare against a
+ * provider's declared context window; not a tokenizer.
+ */
+export function estimateRequestTokens(bodyText: string): number {
+  if (!bodyText) return 0;
+  // ~4 chars/token is a standard LLM heuristic; cap at a sane ceiling.
+  return Math.ceil(bodyText.length / 4);
+}
+
+/**
+ * Preferred per-session provider: the lane that most recently served a given
+ * `x-session-id` successfully. freeinference (and SGLang-style upstreams) keep
+ * a radix KV cache keyed by session — rerouting the same session to the same
+ * provider is the difference between a warm cache hit and a cold regenerate.
+ * This is the "KV-aware weave": sticky per-session routing.
+ */
+const sessionProviderPin = new Map<string, { provider: string; at: number }>();
+
+export function pinSessionProvider(sessionId: string, provider: string): void {
+  sessionProviderPin.set(sessionId, { provider, at: Date.now() });
+}
+
+export function pinnedSessionProvider(sessionId: string | undefined | null): string | undefined {
+  if (!sessionId) return undefined;
+  const p = sessionProviderPin.get(sessionId);
+  if (!p) return undefined;
+  // Staleness: a pin older than 30 min is no longer a warm-cache guarantee.
+  if (Date.now() - p.at > 30 * 60 * 1000) return undefined;
+  return p.provider;
+}
+
+/** Drop the pin when a session is explicitly closed. */
+export function unpinSessionProvider(sessionId: string): void {
+  sessionProviderPin.delete(sessionId);
+}
+
+export interface RankedCandidate {
+  provider: ProviderDef;
+  model: string;
+  isEmbeddings: boolean;
+}
+
+/**
+ * Order candidates by fit, not by blind priority:
+ *   1. providers whose declared context window fits the request (largest margin
+ *      first — a big window leaves headroom for the completion)
+ *   2. unknown-context providers (treated as fit, unordered)
+ *   3. too-small contexts LAST — only used if nothing else fits
+ * Within a tier, stick to the per-session pin (KV warmth) when present, else
+ * preserve the original (priority) order so existing behaviour is unchanged
+ * when there is no context-pressure.
+ */
+export function orderCandidatesByFit(
+  candidates: RankedCandidate[],
+  requestTokens: number,
+  sessionId?: string | null,
+): RankedCandidate[] {
+  if (candidates.length <= 1) return candidates;
+
+  const pinned = pinnedSessionProvider(sessionId);
+
+  const score = (c: RankedCandidate): number => {
+    const ctx = c.provider.contextLengths?.[c.model];
+    if (ctx === undefined) return 1; // unknown → neutral tier
+    if (ctx >= requestTokens) return 2 + Math.min(ctx - requestTokens, 1_000_000) / 1_000_000; // fit tier
+    return 0; // too small → last tier
+  };
+
+  const ranked = candidates
+    .map((c) => ({ c, s: score(c) }))
+    .sort((a, b) => b.s - a.s);
+
+  // Re-stabilise within ties: pinned provider first, then original order.
+  const tierGroups = new Map<number, RankedCandidate[]>();
+  for (const { c, s } of ranked) {
+    const g = tierGroups.get(s) ?? [];
+    g.push(c);
+    tierGroups.set(s, g);
+  }
+  const tiers = [...tierGroups.keys()].sort((a, b) => b - a);
+  const out: RankedCandidate[] = [];
+  for (const t of tiers) {
+    const group = tierGroups.get(t)!;
+    if (pinned) {
+      const pinIdx = group.findIndex((c) => c.provider.name === pinned);
+      if (pinIdx >= 0) {
+        const [p] = group.splice(pinIdx, 1);
+        out.push(p);
+      }
+    }
+    out.push(...group);
+  }
+  return out;
+}

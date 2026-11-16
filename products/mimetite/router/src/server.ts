@@ -11,9 +11,10 @@
  */
 import { readFileSync } from "node:fs";
 import { PROVIDER_DEFS, MODEL_ALIASES, DEAD_MODEL_IDS } from "../../catalog/src/data.ts";
+import { isUaBlocked, resolveUserAgent, uaRetryCandidate } from "../../catalog/src/ua.ts";
 import { joinBaseUrl } from "../../catalog/src/adapters.ts";
 import type { ProviderDef } from "../../catalog/src/types.ts";
-import { providerSemaphore, retryAfterMs, isConcurrencyShed, isQuotaExhausted, acquireProviderSlot, PROVIDER_MAX_PARALLEL, recordSuccess, recordCongestion, congestionWindowsSnapshot } from "./primitives.ts";
+import { providerSemaphore, retryAfterMs, isConcurrencyShed, isQuotaExhausted, acquireProviderSlot, PROVIDER_MAX_PARALLEL, recordSuccess, recordCongestion, congestionWindowsSnapshot, estimateRequestTokens, orderCandidatesByFit, pinSessionProvider, pinnedSessionProvider } from "./primitives.ts";
 import { qualify as routingId } from "./shapes.ts";
 import { healSseResponse } from "./stream-healer.ts";
 import { applyLaneIsolation } from "./lane-router.ts";
@@ -494,9 +495,31 @@ function isRetryableSaturation(status: number, bodyText: string): boolean {
 
 // ─── Proxy Upstream Engine ───────────────────────────────────────────────────
 
-async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: string): Promise<Response> {
-  const allCandidates = getCandidateRoutes(initialRoute.model);
+async function proxyUpstream(
+  initialRoute: ProviderRoute,
+  r: Request,
+  path: string,
+  deps: { fetchImpl?: typeof fetch } = {},
+): Promise<Response> {
+  const doFetch = deps.fetchImpl ?? fetch;
   let requestBody = await r.text();
+  // Honor the client's abort: when the caller (tau/kappa/hermes) interrupts or
+  // steers, it aborts its request — that signal MUST cancel the upstream
+  // generation instead of letting it run to completion. Combine it with the
+  // headers-timeout so a hung upstream still trips. (Previously only the
+  // timeout signal was passed, so an interrupt left the model "still running
+  // the previous task".)
+  const clientAbort = r.signal; // Aborts on client disconnect / interrupt
+  const upstreamSignal = clientAbort
+    ? AbortSignal.any([clientAbort, AbortSignal.timeout(UPSTREAM_HEADERS_TIMEOUT_MS)])
+    : AbortSignal.timeout(UPSTREAM_HEADERS_TIMEOUT_MS);
+  // Not-blind candidate order: context-size aware (fit the request's estimated
+  // tokens), then KV/session stickiness (serve the session on the lane whose
+  // radix cache already holds its prefix). Falls back to plain priority when
+  // there is no context pressure.
+  const requestTokens = estimateRequestTokens(requestBody);
+  const sessionId = r.headers.get("x-session-id");
+  const allCandidates = orderCandidatesByFit(getCandidateRoutes(initialRoute.model), requestTokens, sessionId);
 
   // Stepping-in-front state: providers tried this request, and providers that
   // shed us with a concurrency 429 (diversity: skip them in the walk).
@@ -569,15 +592,19 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
       if (v) headers[h] = v;
     }
 
-    // Pin the provider's configured identity when it declares one (freeinference
-    // requires its browser UA — a claude-cli/1.0.0 client UA flips the upstream
-    // /v1/models catalog and hides bge-m3). Otherwise forward the client's real
-    // agent identity, falling back to an explicit mimetite identity. We NEVER
-    // send a spoofed browser UA except where the provider config explicitly
-    // pins one.
-    const configuredUA = route.provider.userAgent?.trim();
+    // Resolve the provider's outbound identity from the UA registry.
+    // Precedence: literal `userAgent` > named `ua` profile > per-model
+    // `modelOverrides[model].ua` > caller's UA > mimetite id.
+    // This is a routing input, not cosmetics: Cloudflare-fronted upstreams
+    // answer a non-browser signature with `403 error 1010 "blocked based on
+    // your browser's signature"` even when the key is perfect, and
+    // freeinference serves a different /v1/models catalog per UA.
     const viaUA = r.headers.get("user-agent")?.trim();
-    headers["user-agent"] = configuredUA || (viaUA?.length ? viaUA : `mimetite/${(process.env.PI_VERSION ?? "unified-router").trim()}`);
+    const modelUa = route.provider.modelOverrides?.[route.model]?.ua;
+    const wireUA =
+      resolveUserAgent({ userAgent: route.provider.userAgent, ua: modelUa ?? route.provider.ua }, viaUA) ??
+      `mimetite/${(process.env.PI_VERSION ?? "unified-router").trim()}`;
+    headers["user-agent"] = wireUA;
 
     // Per-provider concurrency gate: never fire more than the provider's cap
     // ACROSS ALL PROCESSES (shared lease, tau-compatible). Waits for a slot
@@ -585,7 +612,7 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
     const release = await acquireProviderSlot(route.provider.name);
     triedProviders.add(route.provider.name);
     try {
-      const upstream = await fetch(url, {
+      const upstream = await doFetch(url, {
         method: "POST",
         headers,
         body,
@@ -594,7 +621,7 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
         // start, dead keep-alive, silent blackhole) blocks the router forever —
         // the breaker never trips because the fetch never errors, and every
         // caller (hermes gateway warm-up, tau) wedges in "starting".
-        signal: AbortSignal.timeout(UPSTREAM_HEADERS_TIMEOUT_MS),
+        signal: upstreamSignal,
       });
 
       if (upstream.status < 400) {
@@ -635,6 +662,7 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
             headers: { "content-type": "application/json" },
           });
         }
+        if (sessionId) pinSessionProvider(sessionId, route.provider.name);
         return healSseResponse(upstream); // SSE streams pass through with egress markup healing
       }
 
@@ -649,6 +677,49 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
         continue;
       }
       if (upstream.status === 401 || upstream.status === 403) {
+        // A 403 here is ambiguous: Cloudflare's fingerprint block
+        // ("error 1010 ... blocked based on your browser's signature") and a
+        // genuine credential rejection look identical by status alone. Reading
+        // the body is the only way to tell them apart, and conflating them is
+        // what took groq/zen/bitdeer offline for 30 minutes at a time on a
+        // perfectly valid key.
+        if (isUaBlocked(bodyText)) {
+          const retryUA = uaRetryCandidate(wireUA);
+          if (retryUA) {
+            // One retry with the canonical browser identity. If the key was
+            // fine and only the fingerprint was wrong, this succeeds.
+            const retry = await fetch(url, {
+              method: "POST",
+              headers: { ...headers, "user-agent": retryUA },
+              body,
+              signal: upstreamSignal,
+            });
+            if (retry.status < 400) {
+              circuitBreaker.recordSuccess(route.provider.name, route.model);
+              recordSuccess(route.provider.name);
+              return healSseResponse(retry);
+            }
+            const retryBody = await retry.clone().text();
+            if (!isUaBlocked(retryBody)) {
+              // The UA retry got past Cloudflare — the real answer is
+              // underneath, so judge the credential on that.
+              lastUpstreamError = { status: retry.status, body: retryBody };
+              if (retry.status === 401) {
+                circuitBreaker.trip(route.provider.name, undefined, `auth failed (${retry.status}) after UA retry: ${retryBody.slice(0, 100)}`, 1_800_000);
+              }
+              continue;
+            }
+          }
+          // Still fingerprint-blocked as a browser. Short cooldown, and say so:
+          // this is an egress/IP reputation problem, not a dead key.
+          circuitBreaker.trip(
+            route.provider.name,
+            undefined,
+            `ua_blocked: upstream rejected the client fingerprint even as a browser (cf-1010) — egress IP reputation, not a credential fault`,
+            300_000,
+          );
+          continue;
+        }
         circuitBreaker.trip(route.provider.name, undefined, `auth failed (${upstream.status}): ${bodyText.slice(0, 100)}`, 1_800_000);
         continue;
       }
@@ -678,17 +749,32 @@ async function proxyUpstream(initialRoute: ProviderRoute, r: Request, path: stri
         // caused the 503 storm: every subagent request 503'd instantly for
         // 5-15s, retried with 15-70s backoff, collided again, re-tripped.
         if (shed) {
-          const retryCeiling = Math.max(route.provider.retryCeiling ?? 1, 2);
-          for (let attempt = 1; attempt <= retryCeiling; attempt++) {
-            // Server-stated wait is the floor; exponential backoff only adds to it.
+          // 429 on a concurrency shed is a "wait and resend", not a failure:
+          // the shared lease already serialized router-internal traffic, so a
+          // shed here means an external holder has the slot. Honor the
+          // server-stated wait as a floor, then resend — repeatedly, for a
+          // bounded budget — before diversifying. This is the freeinference
+          // "1 concurrent request" reality: a generation can hold the slot for
+          // 20-30s, so resending for a few seconds is the difference between
+          // success and a spurious upstream 429.
+          const shedWaitBudgetMs = 30_000;
+          const shedDeadline = Date.now() + shedWaitBudgetMs;
+          let attempt = 1;
+          while (Date.now() < shedDeadline) {
             const baseWait = serverWaitMs > 0 ? serverWaitMs : Math.min(500 * Math.pow(2, attempt - 1), 2000);
-            await new Promise((resolve) => setTimeout(resolve, baseWait));
-            const retry = await fetch(url, { method: "POST", headers, body, signal: AbortSignal.timeout(UPSTREAM_HEADERS_TIMEOUT_MS) });
+            const remaining = shedDeadline - Date.now();
+            const wait = Math.min(baseWait, remaining);
+            if (wait <= 0) break;
+            await new Promise((resolve) => setTimeout(resolve, wait));
+            attempt++;
+            const retry = await fetch(url, { method: "POST", headers, body, signal: upstreamSignal });
             if (retry.status < 400) {
               circuitBreaker.recordSuccess(route.provider.name, route.model);
+              recordSuccess(route.provider.name);
+              if (sessionId) pinSessionProvider(sessionId, route.provider.name);
               return healSseResponse(retry);
             }
-            if (quota) break; // budget reset: one honored wait, then diversify
+            if (isQuotaExhausted(await retry.clone().text())) break; // budget reset: one honored wait, then diversify
           }
           continue; // still saturated → next candidate; NO breaker trip
         }
