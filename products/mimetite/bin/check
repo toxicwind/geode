@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# agele — the model fleet (llama-swap daemon). bin/check.
+#
+# Fast self-test (PASS/FAIL), no serve:
+#   1. go is available.
+#   2. `go build ./...` compiles clean (the model daemon is buildable).
+#   3. llama-swap.go + go.mod + config.example.yaml present.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+echo "== agele check: start =="
+GFORMAT_GO="${GO:-$(command -v go 2>/dev/null || true)}"
+GO=""
+for c in "$GFORMAT_GO" /usr/local/bin/go /usr/bin/go "$(command -v go 2>/dev/null || true)"; do
+  [ -n "$c" ] && [ -x "$c" ] && { GO="$(readlink -f "$c")"; break; }
+done
+[ -n "${GO:-}" ] || { echo "FAIL: go not found"; exit 1; }
+
+if "$GO" build ./... >/tmp/agele-check-build.log 2>&1; then
+  echo "OK: go build ./... compiles clean"
+else
+  echo "FAIL: go build ./... failed:"; tail -5 /tmp/agele-check-build.log; exit 1
+fi
+
+for f in llama-swap.go go.mod config.example.yaml Makefile; do
+  [ -f "$f" ] && echo "OK: $f present" || { echo "FAIL: $f missing"; exit 1; }
+done
+echo "AGELE CHECK: PASS"
+exit 0

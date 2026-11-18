@@ -1,0 +1,198 @@
+{
+  "name": "@orchestral/patterns",
+  "version": "0.6.0",
+  "description": "Orchestral first-party Pattern catalog — atomic capabilities + builtin meta pipelines with inlined prompts. Depends on @orchestral/core.",
+  "license": "Apache-2.0",
+  "author": "MyPrototypeWhat <daoquqiexing@gmail.com>",
+  "homepage": "https://github.com/orchestral-media/orchestral#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/orchestral-media/orchestral.git",
+    "directory": "packages/orchestral-patterns"
+  },
+  "bugs": {
+    "url": "https://github.com/orchestral-media/orchestral/issues"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "orchestration",
+    "orchestral-pattern",
+    "text-to-image",
+    "text-to-video",
+    "text-to-speech",
+    "image-generation",
+    "video-generation",
+    "speech-recognition",
+    "media-pipeline",
+    "multimodal",
+    "typescript"
+  ],
+  "orchestral": {
+    "patterns": [
+      {
+        "id": "text-to-image",
+        "kind": "atomic",
+        "export": "createTextToImagePattern"
+      },
+      {
+        "id": "image-to-image",
+        "kind": "atomic",
+        "export": "createImageToImagePattern"
+      },
+      {
+        "id": "image-to-text",
+        "kind": "atomic",
+        "export": "createImageToTextPattern"
+      },
+      {
+        "id": "text-to-video",
+        "kind": "atomic",
+        "export": "createTextToVideoPattern"
+      },
+      {
+        "id": "image-to-video",
+        "kind": "atomic",
+        "export": "createImageToVideoPattern"
+      },
+      {
+        "id": "video-to-video",
+        "kind": "atomic",
+        "export": "createVideoToVideoPattern"
+      },
+      {
+        "id": "text-to-speech",
+        "kind": "atomic",
+        "export": "createTextToSpeechPattern"
+      },
+      {
+        "id": "text-to-audio",
+        "kind": "atomic",
+        "export": "createTextToAudioPattern"
+      },
+      {
+        "id": "automatic-speech-recognition",
+        "kind": "atomic",
+        "export": "createAutomaticSpeechRecognitionPattern"
+      },
+      {
+        "id": "text-generation",
+        "kind": "atomic",
+        "export": "createTextGenerationPattern"
+      },
+      {
+        "id": "meta_image-to-image-via-caption",
+        "kind": "meta",
+        "export": "createImageToImageViaCaptionPattern"
+      },
+      {
+        "id": "meta_script2video",
+        "kind": "meta",
+        "export": "createScript2VideoMeta",
+        "requiredOps": [
+          "concatVideos"
+        ]
+      },
+      {
+        "id": "meta_image-best-of-n",
+        "kind": "meta",
+        "export": "createImageBestOfNMeta"
+      },
+      {
+        "id": "meta_storyboard",
+        "kind": "meta",
+        "export": "createStoryboardMeta"
+      },
+      {
+        "id": "meta_product-ad-short",
+        "kind": "meta",
+        "export": "createProductAdShortMeta",
+        "requiredOps": [
+          "addBackgroundAudio",
+          "recordSessionAsset"
+        ]
+      },
+      {
+        "id": "meta_product-photo-pack",
+        "kind": "meta",
+        "export": "createProductPhotoPackMeta"
+      },
+      {
+        "id": "meta_ugc-testimonial",
+        "kind": "meta",
+        "export": "createUgcTestimonialMeta",
+        "requiredOps": [
+          "concatVideos",
+          "addBackgroundAudio",
+          "addSubtitles",
+          "createSubtitleAsset"
+        ]
+      },
+      {
+        "id": "meta_explainer-short",
+        "kind": "meta",
+        "export": "createExplainerShortMeta",
+        "requiredOps": [
+          "concatVideos",
+          "stillToVideo"
+        ]
+      },
+      {
+        "id": "meta_plan",
+        "kind": "meta",
+        "export": "createPlanMeta",
+        "requiredOps": [
+          "getPattern"
+        ]
+      }
+    ]
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "NOTICE",
+    "CHANGELOG.md",
+    "CREDITS.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./package.json": "./package.json"
+    }
+  },
+  "scripts": {
+    "build": "tsdown && tsc -p tsconfig.build.json && api-extractor run",
+    "prepack": "npm run build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest watch"
+  },
+  "dependencies": {
+    "@orchestral/core": "workspace:*",
+    "@orchestral/plan": "workspace:*"
+  },
+  "peerDependencies": {
+    "zod": ">=4.3 <5"
+  },
+  "devDependencies": {
+    "@orchestral/discovery": "workspace:*",
+    "@orchestral/runtime": "workspace:*",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.6",
+    "zod": "^4.3.6"
+  }
+}

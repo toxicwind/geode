@@ -1,0 +1,427 @@
+// dispatch_pattern — the Pattern invocation primitive.
+//
+// LLM emits `dispatch_pattern({pattern_id, input})` after finding a Pattern
+// via find_pattern. This module owns the input validation + scope contract;
+// the actual dispatch (submitJob, resolution, inner-job tracking) stays in
+// the host because it needs runtime + per-session context this layer
+// doesn't have.
+//
+// Validation lives here rather than at each call site, so every by-id dispatch
+// path — the two LLM surfaces and the two person-facing ones — shares one
+// source of truth on:
+//   • pattern_id resolution (full id, falling back to the unqualified short
+//     name a person types into a slash command)
+//   • exposure / audience scope enforcement
+//   • zod parse with structured error reporting for LLM self-correction
+//
+// Scope: resolution only. What a person-facing command surface needs on top —
+// a completion menu, a schema-driven form, an asset picker — is the host's own
+// concern.
+//
+// Capability sub-modes are expressed via input.references asset slots +
+// typed providerOptions schema.
+
+import { z, type ZodType } from 'zod'
+
+import type { Pattern, PatternExposure } from './pattern'
+import { resolveExposure } from './pattern'
+import { producesAssets } from './product-name'
+import { productNameOf } from './product-name-of'
+import type { PatternRegistry } from './registry'
+
+// ── Model-visible strings come in two spellings ─────────────────────────
+//
+// Every string in this module an LLM can read has to answer one question
+// first: does the catalog this text is going back to carry `find_pattern`?
+// Retrieval is an injected seam (`PatternSearch`; @orchestral/runtime takes one
+// as `InlineRuntimeInit.patternSearch`), and a catalog with none wired emits no
+// find_pattern descriptor at all — so a `describe` or a hint that says "call
+// find_pattern" is, on that catalog, an instruction to call a tool that is not
+// there. It costs the model a turn to discover that, and it re-primes the very
+// token the model should stop emitting.
+//
+// So the question is ONE parameter — `includeFindPattern` on
+// `buildCatalogDescriptors`, `hasPatternSearch` on `resolveDispatchTarget` —
+// and it reaches every string below. Same two-variant shape the runtime's own
+// refusal hints already use (`rediscoverHint` in agent-dispatch.ts); this
+// module is the second half of that, because the strings the runtime forwards
+// verbatim are written here.
+//
+// The WITH_SEARCH spellings are byte-for-byte what shipped before the split.
+// They sit in the KV-cached tool-definition prefix, so editing one invalidates
+// every provider-side prompt cache built on the old text; the NO_SEARCH ones
+// are new and say what IS reachable rather than naming the absent tool.
+
+const PATTERN_ID_DESCRIBE_WITH_SEARCH =
+  'Pattern id returned by find_pattern (e.g. "text-to-image", "image-to-image", "meta_image-to-image-via-caption").'
+
+const PATTERN_ID_DESCRIBE_NO_SEARCH =
+  'Pattern id, exactly as spelled in your instructions or in an earlier result (e.g. "text-to-image", "image-to-image", "meta_image-to-image-via-caption").'
+
+const INPUT_DESCRIBE_WITH_SEARCH =
+  "Pattern-specific input fields. See find_pattern's primary.inputSchema for the derived schema (with the resolved top-1 model's typed providerOptions fields lifted in). Assets are referenced by HANDLE via `input.references.<slot>` — never pass raw asset ids. For OPTIONAL attachments (mask / end-frame / reference / voiceClone), read the per-slot descriptions inside the schema's `references` object — unknown slot keys are rejected."
+
+const INPUT_DESCRIBE_NO_SEARCH =
+  "Pattern-specific input fields, as that Pattern's own schema describes them. Assets are referenced by HANDLE via `input.references.<slot>` — never pass raw asset ids. For OPTIONAL attachments (mask / end-frame / reference / voiceClone), read the per-slot descriptions inside the schema's `references` object — unknown slot keys are rejected."
+
+/**
+ * One shape, two spellings. Both schemas parse identically — `describe()` text
+ * is metadata, never a parse rule — so the runtime keeps validating against
+ * `DispatchPatternInputSchema` no matter which one the catalog serialised.
+ *
+ * `input` is an untyped record in both. The per-Pattern shape is the target
+ * Pattern's own schema, which `resolveDispatchTarget` parses against; this
+ * schema never rpenss it.
+ * DESIGN: dispatch-pattern-input-untyped
+ */
+function buildDispatchPatternInputSchema(hasPatternSearch: boolean) {
+  return z.object({
+    pattern_id: z
+      .string()
+      .min(1)
+      .describe(
+        hasPatternSearch
+          ? PATTERN_ID_DESCRIBE_WITH_SEARCH
+          : PATTERN_ID_DESCRIBE_NO_SEARCH,
+      ),
+    input: z
+      .record(z.string(), z.unknown())
+      .describe(
+        hasPatternSearch ? INPUT_DESCRIBE_WITH_SEARCH : INPUT_DESCRIBE_NO_SEARCH,
+      ),
+  })
+}
+
+/** LLM-facing input contract for the dispatch_pattern catalog tool. */
+export const DispatchPatternInputSchema = buildDispatchPatternInputSchema(true)
+
+/**
+ * The same contract for a catalog that carries no `find_pattern`. Module-level
+ * export for catalog-builder.ts; deliberately not re-exported from index.ts,
+ * because `buildCatalogDescriptors({ includeFindPattern: false })` is the one
+ * place that should be deciding which spelling a catalog serialises — a second
+ * public door to it is a second place the choice can be made inconsistently.
+ */
+export const DispatchPatternInputSchemaNoSearch =
+  buildDispatchPatternInputSchema(false)
+
+export type DispatchPatternInput = z.infer<typeof DispatchPatternInputSchema>
+
+/**
+ * Audience hint for scope enforcement. `'chat-turn'` and `'agent-loop'` are the
+ * two LLM surfaces, mirroring find_pattern.
+ *
+ * `'slash'` and `'canvas'` are host-defined surfaces: they cover the case where
+ * a **person**, not an LLM, names a Pattern directly — a typed command, or a
+ * node wired up in a graph editor. Both bypass find_pattern discovery (the id
+ * is supplied, not discovered), so neither is gated on the LLM-facing exposure
+ * flags; they gate on `resolveExposure(...).slash` / `.canvas` instead. This
+ * library never dispatches through them itself — they exist so a host building
+ * such a surface gets the same fail-closed gate the LLM surfaces get, rather
+ * than reinventing it and defaulting it open.
+ */
+export type DispatchAudience = 'chat-turn' | 'agent-loop' | 'slash' | 'canvas'
+
+/**
+ * Discriminated union of dispatch-resolution failures. Every variant carries
+ * a `code` literal so consumers narrow with `switch (err.code)` and TS knows
+ * which side-fields are populated. Returned (not thrown) by
+ * `resolveDispatchTarget` so the host can ship the JSON into a tool_result
+ * for LLM self-correction. `INPUT_VALIDATION_FAILED` carries zod's issues as
+ * they are, each with its path, so the model can tell which field to fix.
+ * DESIGN: dispatch-error-returned
+ */
+export type DispatchPatternError =
+  | {
+      code: 'PATTERN_NOT_FOUND'
+      pattern_id: string
+      message: string
+      hint: string
+    }
+  | {
+      code: 'AGENT_HOST_ONLY'
+      pattern_id: string
+      message: string
+    }
+  | {
+      code: 'INPUT_VALIDATION_FAILED'
+      pattern_id: string
+      issues: readonly z.core.$ZodIssue[]
+      message: string
+      hint: string
+    }
+  | {
+      code: 'PATTERN_NOT_DISPATCHABLE'
+      pattern_id: string
+      exposure: PatternExposure
+      audience: DispatchAudience
+      message: string
+      hint: string
+    }
+
+export interface ResolvedDispatchTarget {
+  pattern: Pattern
+  /** Validated + parsed input ready to forward to runtime.submitJob. */
+  parsedInput: Record<string, unknown>
+}
+
+/** Options for `resolveDispatchTarget`. */
+export interface ResolveDispatchOptions {
+  /**
+   * Whether the catalog this refusal travels back to carries `find_pattern` —
+   * the same question `BuildCatalogDescriptorsOptions.includeFindPattern`
+   * answers for the descriptors, asked here for the hints. Defaults to `true`,
+   * which is the wording every caller got before this option existed.
+   *
+   * Pass `false` from a surface whose catalog has no retrieval behind it
+   * (@orchestral/runtime does this for an agent loop with no
+   * `InlineRuntimeInit.patternSearch` seam). The hints then point at what the
+   * caller actually has instead of sending it after a tool the catalog omits;
+   * the refusal `code`s, `message`s and side-fields are identical either way,
+   * so nothing that switches on them can tell the difference.
+   */
+  hasPatternSearch?: boolean
+}
+
+/**
+ * Resolve the dispatch target and validate input. Pure function — host
+ * caller takes the resolved target and delegates to its dispatch pipeline —
+ * both the chat-turn tool-call handler and the agent loop's onToolCall end up
+ * calling runtime.submitJob with the parsed input.
+ *
+ * `audience` enforces the exposure scope contract symmetrically to
+ * find_pattern: `exposure='no-tool'` Patterns are host-only and rejected
+ * for both audiences; `exposure='agent-tool'` Patterns are subagent-only
+ * and rejected for chat-turn. Without this enforcement the catalog
+ * filter on find_pattern would be a cosmetic discovery aid only — a
+ * hallucinating / replaying LLM could still dispatch any registered
+ * Pattern by id.
+ *
+ * `'slash'` and `'canvas'` are the person-facing surfaces: the id is supplied,
+ * not discovered, so they gate on `resolveExposure(...).slash` / `.canvas`
+ * instead — same resolver, same `DispatchPatternError` vocabulary. This library
+ * never dispatches through them itself; they exist so a host building such a
+ * surface gets the fail-closed gate rather than defaulting one open.
+ *
+ * `opts.hasPatternSearch` picks the spelling of every hint that would otherwise
+ * name `find_pattern`. It lives here rather than in the caller because the
+ * caller would have to rewrite text it did not write — one authority for the
+ * wording, one parameter selecting it.
+ */
+export function resolveDispatchTarget(
+  registry: PatternRegistry,
+  input: DispatchPatternInput,
+  audience: DispatchAudience,
+  opts: ResolveDispatchOptions = {},
+): ResolvedDispatchTarget | DispatchPatternError {
+  const hasPatternSearch = opts.hasPatternSearch !== false
+  // Two spellings of one id: the canonical full id, and the unqualified short
+  // name a person types into a slash command (`/fancy-edit` for
+  // `image-gen/fancy-edit`). Which spelling arrived is not a surface — it is
+  // orthography — so the fallback lives here rather than in a second resolver
+  // per audience. It used to live in slash-dispatch.ts, which had to reimplement
+  // the exposure gate around it and therefore refused with its own codes; the
+  // refusal a user saw then depended on which entry point their host called.
+  // `ResolvedDispatchTarget.pattern.id` is always the canonical id.
+  const canonicalId = registry.has(input.pattern_id)
+    ? input.pattern_id
+    : registry.resolveShortName(input.pattern_id)
+  const entry = canonicalId ? registry.getEntry(canonicalId) : undefined
+  if (!entry) {
+    return {
+      code: 'PATTERN_NOT_FOUND',
+      pattern_id: input.pattern_id,
+      message: `Pattern "${input.pattern_id}" is not registered (tried full id and short name).`,
+      // The person-facing surfaces supply the id instead of discovering it, so
+      // sending them to find_pattern names a tool they never called. An LLM
+      // surface whose catalog carries no find_pattern is in the same position
+      // for a different reason — hence the second branch.
+      hint:
+        audience === 'slash' || audience === 'canvas'
+          ? 'Check the id against the registry — both the canonical full id and the unqualified short name are accepted.'
+          : hasPatternSearch
+            ? 'Call find_pattern with a relevant query to discover valid pattern_id values.'
+            : 'Use a pattern_id you were given — this catalog cannot be searched.',
+    }
+  }
+  const { pattern } = entry
+
+  // Exposure / audience scope enforcement — symmetric to find_pattern's
+  // catalog-side filter. find_pattern already hides non-dispatchable
+  // Patterns from the LLM's view; this branch is the runtime gate against
+  // a Pattern id the LLM produced from memory / training data / leaked
+  // state without going through find_pattern.
+  // Per-surface visibility comes from resolveExposure (back-compat with the
+  // 'tool'/'agent-tool'/'no-tool' shorthand). The raw `exposure` is echoed
+  // unchanged in the error payload for diagnostics.
+  const exposure: PatternExposure = pattern.exposure ?? 'tool'
+  const resolved = resolveExposure(pattern.exposure)
+  const visibleToAudience =
+    audience === 'agent-loop'
+      ? resolved.agentLoop
+      : audience === 'slash'
+        ? resolved.slash
+        : audience === 'canvas'
+          ? resolved.canvas
+          : resolved.chatTurn
+  if (!visibleToAudience) {
+    // No surface can dispatch this Pattern under the requested audience.
+    // Distinguish "host-only everywhere" (both LLM surfaces closed) from
+    // "subagent-only" (chat-turn closed but agent-loop open) for a clearer
+    // hint, matching the prior shorthand messages. Slash gets its own hint
+    // since it doesn't go through find_pattern.
+    const hostOnly = !resolved.chatTurn && !resolved.agentLoop
+    return {
+      code: 'PATTERN_NOT_DISPATCHABLE',
+      pattern_id: input.pattern_id,
+      exposure,
+      audience,
+      message:
+        audience === 'slash'
+          ? `Pattern "${input.pattern_id}" is not exposed to slash commands.`
+          : audience === 'canvas'
+            ? `Pattern "${input.pattern_id}" is not exposed to the 'canvas' surface.`
+            : hostOnly
+              ? `Pattern "${input.pattern_id}" is host-only and cannot be dispatched by any LLM.`
+              : `Pattern "${input.pattern_id}" is not visible to the '${audience}' surface.`,
+      hint:
+        audience === 'slash'
+          ? 'Set exposure.slash to true on the Pattern to allow user slash dispatch.'
+          : audience === 'canvas'
+            ? "Set exposure.canvas to true on the Pattern to allow dispatch from the 'canvas' surface."
+            : hostOnly
+              ? hasPatternSearch
+                ? 'Use find_pattern to discover Patterns visible to this audience.'
+                : 'Pick a pattern_id that is visible to this audience — this catalog cannot be searched.'
+              : hasPatternSearch
+                ? 'Use find_pattern from this audience to see Patterns appropriate for this surface.'
+                : 'Pick a pattern_id appropriate for this surface — this catalog cannot be searched.',
+    }
+  }
+
+  const schema = selectInputSchema(pattern)
+  if (!schema) {
+    return {
+      code: 'AGENT_HOST_ONLY',
+      pattern_id: input.pattern_id,
+      message: `Pattern "${input.pattern_id}" has no LLM-callable primary tool (host-only agent).`,
+    }
+  }
+
+  // The `Pattern.input` schema no longer declares a `providerOptions`
+  // placeholder field. The LLM-facing schema returned by find_pattern IS
+  // extended via `deriveLlmFacingInputSchema` (typed `providerOptions:
+  // z.object(remaining)` + lifted LIFTABLE fields), but dispatch_pattern
+  // validates against the un-derived base schema for host portability — so
+  // we must accept LLM-filled extra keys (providerOptions / lifted fields)
+  // here, otherwise zod v4 strict parse strips them silently and the host
+  // adapter sees an empty providerOptions / missing lifted constraints.
+  //
+  // Switching the base schema to passthrough on parse is the minimal fix:
+  //  - all declared base fields still validate strictly (e.g. prompt required,
+  //    a numeric field with integer min/max bounds)
+  //  - LLM-filled extras (providerOptions blob, lifted top-level fields)
+  //    pass through to `parsedInput` for the host to forward
+  // DESIGN: dispatch-parse-passthrough
+  const parseSchema =
+    'passthrough' in schema && typeof (schema as { passthrough?: unknown }).passthrough === 'function'
+      ? ((schema as unknown as { passthrough: () => ZodType<unknown> }).passthrough() as ZodType<unknown>)
+      : schema
+  const parseResult = parseSchema.safeParse(input.input)
+  // A name on a Pattern whose outputs carry no assets[]. Registration gives
+  // only an asset-producing Pattern the `name` field, so on any other the
+  // passthrough above lets a name through untouched — and nothing would ever be
+  // recorded under it. Refused here rather than dropped, as an input issue
+  // beside the parse's own: the model fixes both in one turn. A blank name is
+  // absent (productNameOf), so it is never refused; on a producer the field
+  // itself already judged the name during the parse.
+  const productName = productNameOf(input.input)
+  const nameIssues: z.core.$ZodIssue[] =
+    productName !== undefined && !producesAssets(pattern)
+      ? [
+          {
+            code: 'custom',
+            path: ['name'],
+            input: (input.input as { name?: unknown }).name,
+            message: `Pattern "${input.pattern_id}" produces no assets, so nothing would be recorded under name "${productName}". Omit name for this Pattern.`,
+          },
+        ]
+      : []
+  if (!parseResult.success || nameIssues.length > 0) {
+    const issues = [...(parseResult.success ? [] : parseResult.error.issues), ...nameIssues]
+    // When the LLM guessed a reference slot name (e.g. `reference` instead of
+    // `source`/`mask`), zod reports `unrecognized_keys` under path ['references']
+    // but the default hint says nothing about which slots exist — the model then
+    // burns turns guessing synonyms. Mirror HANDLE_NOT_FOUND's meta.available
+    // self-correction design: list the pattern's declared reference slots so the
+    // model can pick a real one on the next call.
+    const refSlotHint = buildReferenceSlotHint(issues, pattern)
+    return {
+      code: 'INPUT_VALIDATION_FAILED',
+      pattern_id: input.pattern_id,
+      issues,
+      message: `Input validation failed for "${input.pattern_id}". See issues[] for field-level errors.`,
+      hint:
+        (refSlotHint ? `${refSlotHint} ` : '') +
+        (hasPatternSearch
+          ? 'Fix the listed fields and call dispatch_pattern again. Re-fetch the schema via find_pattern if uncertain.'
+          : 'Fix the listed fields and call dispatch_pattern again. The issues[] list names every field the schema rejected.'),
+    }
+  }
+
+  return {
+    pattern,
+    parsedInput: parseResult.data as Record<string, unknown>,
+  }
+}
+
+/**
+ * Select the zod schema to validate `input` against. Meta uses its
+ * top-level tool.inputs; atomic / agent use their primary.tool.inputs
+ * directly.
+ */
+function selectInputSchema(pattern: Pattern): ZodType<unknown> | undefined {
+  if (pattern.kind === 'meta') {
+    return pattern.tool.inputs as unknown as ZodType<unknown>
+  }
+  if (!pattern.primary) return undefined
+  return pattern.primary.tool.inputs as unknown as ZodType<unknown>
+}
+
+/**
+ * If the parse failure includes an `unrecognized_keys` issue under the
+ * `references` object, return a sentence naming the offending key(s) and the
+ * pattern's actually-declared reference slots. Returns null when no reference
+ * slot was misnamed (or the pattern declares no asset slots), so the caller
+ * only augments the hint in the slot-typo case.
+ */
+function buildReferenceSlotHint(
+  issues: readonly z.core.$ZodIssue[],
+  pattern: Pattern,
+): string | null {
+  const declaredSlots = (pattern.assetNeeds ?? []).map((n) => n.slot)
+  if (declaredSlots.length === 0) return null
+  const badKeys = new Set<string>()
+  for (const issue of issues) {
+    if (
+      issue.code === 'unrecognized_keys' &&
+      issue.path.length === 1 &&
+      issue.path[0] === 'references'
+    ) {
+      for (const k of issue.keys) badKeys.add(k)
+    }
+  }
+  if (badKeys.size === 0) return null
+  return (
+    `Unknown references slot${badKeys.size > 1 ? 's' : ''} ` +
+    `[${[...badKeys].join(', ')}] — this pattern only accepts ` +
+    `references.{${declaredSlots.join(' | ')}}.`
+  )
+}
+
+/** Type guard: did resolveDispatchTarget return a target or an error? */
+export function isDispatchError(
+  result: ResolvedDispatchTarget | DispatchPatternError,
+): result is DispatchPatternError {
+  return 'code' in result
+}

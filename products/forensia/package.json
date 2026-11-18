@@ -1,0 +1,27 @@
+{
+  "name": "@geode/forensia",
+  "version": "0.1.0",
+  "description": "Hydration-integrity auditor — poison-as-sensor for the pens Pens",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "forensia": "./bin/forensia.ts"
+  },
+  "scripts": {
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "mcp": "bun run mcp/server.ts",
+    "check": "bunx oxlint . && bunx oxfmt --check '*.ts' 'bin/**/*.ts' 'experiments/**/*.ts' 'mcp/**/*.ts'",
+    "lint": "bunx oxlint ."
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "picomatch": "^4.0.7",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "bun-types": "^1.4.4"
+  }
+}

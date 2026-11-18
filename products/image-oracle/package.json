@@ -1,0 +1,37 @@
+{
+  "name": "@geode/image-oracle",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.28.1",
+  "description": "Orchestral — capability routing, opt-in semantic fallback, and an asset-handle protocol for AI media applications.",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22.11",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/*\" build",
+    "test": "vitest run",
+    "test:run": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "pnpm -r --parallel typecheck",
+    "lint": "biome lint .",
+    "api:check": "pnpm -r --filter \"./packages/*\" --filter \"!@orchestral/dsh-plugin\" exec api-extractor run && pnpm --filter @orchestral/core exec api-extractor run -c api-extractor.memory.json && pnpm --filter @orchestral/core exec api-extractor run -c api-extractor.routing.json",
+    "api:update": "pnpm -r --filter \"./packages/*\" --filter \"!@orchestral/dsh-plugin\" exec api-extractor run --local && pnpm --filter @orchestral/core exec api-extractor run --local -c api-extractor.memory.json && pnpm --filter @orchestral/core exec api-extractor run --local -c api-extractor.routing.json",
+    "smoke:dist": "pnpm build && node scripts/smoke-dist.mjs",
+    "docs:catalog": "node scripts/gen-pattern-catalog.mjs",
+    "changeset": "changeset",
+    "ci:version": "changeset version",
+    "ci:publish": "pnpm build && pnpm docs:catalog && git diff --exit-code packages/orchestral-patterns/README.md && pnpm typecheck && pnpm test && pnpm lint && pnpm api:check && node scripts/smoke-dist.mjs && pnpm -r --filter \"!@orchestral/dsh-plugin\" publish --access public --no-git-checks"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.1",
+    "@changesets/cli": "^3.0.1",
+    "@microsoft/api-extractor": "^7.58.9",
+    "@vitest/coverage-v8": "^3.2.6",
+    "tsdown": "^0.22.3",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.6"
+  }
+}

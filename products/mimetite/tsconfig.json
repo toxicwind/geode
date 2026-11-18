@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["bun"],
+    "target": "esnext"
+  },
+  "include": [
+    "mesh/**/*.ts",
+    "src/**/*.ts",
+    "*.ts"
+  ],
+  "exclude": [
+    "engines/**",
+    "**/node_modules/**"
+  ]
+}

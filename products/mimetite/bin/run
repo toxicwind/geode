@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# agele — the model fleet: llama-swap daemon (fork of mostlygeek/llama-swap). bin/run.
+#
+# Primary operation: serve the model fleet — llama-swap (llama-swap.go) swaps/loads
+# inference models with capability auto-discovery + CORS. This rig surfaces the
+# daemon without starting a live server.
+#
+# Usage:
+#   bin/run            structural boot (go build ./... compiles-ok, no serve)
+#   bin/run serve      go run llama-swap.go (launch; needs config; explicit order only)
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+GFORMAT_GO="${GO:-$(command -v go 2>/dev/null || true)}"
+GO=""
+for c in "$GFORMAT_GO" /usr/local/bin/go /usr/bin/go "$(command -v go 2>/dev/null || true)"; do
+  [ -n "$c" ] && [ -x "$c" ] && { GO="$(readlink -f "$c")"; break; }
+done
+[ -n "${GO:-}" ] || { echo "FAIL: go not found"; exit 1; }
+
+case "${1:-boot}" in
+  serve)
+    echo "== agele run: serve llama-swap (launch; interactive) =="
+    echo "WARNING: do not start a live model daemon without an explicit order."
+    echo "config: config.example.yaml | flags: -config <yml> -listen <addr>"
+    exec "$GO" run . "$@"
+    ;;
+  boot|*)
+    echo "== agele run: model-fleet (agele llama-swap) boot =="
+    "$GO" build ./... >/dev/null 2>&1 || { echo "FAIL: go build ./... failed"; exit 1; }
+    echo "OK: agele (llama-swap) compiles clean"
+    echo "use: bin/run serve  to launch (explicit order required)."
+    ;;
+esac

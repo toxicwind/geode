@@ -1,0 +1,7 @@
+# orchestral → image-oracle (2026-11-12) — fork of orchestral-media/orchestral
+# for the separate image-model geode (bornite stays text-only).
+case: orchestral => image-oracle
+substr: orchestral => image-oracle
+substr: Orchestral => ImageOracle
+substr: ORCHESTRAL => IMAGE_ORACLE
+substr: @orchestral => @image-oracle

@@ -1,0 +1,92 @@
+// CapabilityRouter interface — the host-owned binding between a
+// (capability, tags, ctx) triple and a concrete model. Both the interface
+// and a storage-agnostic default implementation
+// (createDefaultCapabilityRouter) live in this package; a host either feeds
+// the default its getModels / getCapabilityOrder seams or implements the
+// interface directly. It sits beside the Pattern vocabulary (not in the
+// runtime) because Alternative.appliesWhen['capability-unavailable'] needs
+// to ask the router whether a capability has any satisfiable model.
+
+import type { Capability } from './capability'
+import type { ModelTag } from './model-tag'
+import type {
+  ModelCapability,
+  ModelCapabilityRecord,
+  ResolveContext,
+} from './capability-model'
+import type { UnavailabilityReason } from './alternative'
+import type { RoutingExplanation } from './routing-explanation'
+
+/**
+ * Discriminated-union result for `checkSatisfiable`. Replaces an earlier
+ * `{ satisfiable: boolean; candidates; reason? }` anti-pattern that allowed
+ * a `{ satisfiable: true, reason: 'no-model' }` contradiction.
+ *
+ * Returns persisted records (no `call` adapter) because checkSatisfiable
+ * is a pure inspection — caller hasn't asked to dispatch yet. Only
+ * `resolve()` returns the runtime envelope.
+ */
+export type SatisfiableResult =
+  | { ok: true; candidates: readonly ModelCapabilityRecord[] }
+  | {
+      ok: false
+      reason: UnavailabilityReason
+      candidates: readonly ModelCapabilityRecord[]
+    }
+
+/**
+ * The router is the host-owned binding between a (capability, tags, ctx)
+ * triple and a concrete model. It is the single point where a Pattern's
+ * capability requirement gets joined to a provider implementation.
+ *
+ * Model fallback walk: when a dispatch gives up on a model, the runtime adds
+ * that `provider:modelId` to `ResolveContext.excludeModel` and calls `resolve`
+ * again, so each hop lands on a different candidate. If no candidate remains
+ * the runtime throws NO_MODEL_FOR_CAPABILITY, and evaluates `Alternative`
+ * fallbacks only if the host enabled them (opt-in in @orchestral/runtime).
+ * Retrying the SAME model is a separate, opt-in loop that lives entirely on
+ * the runtime side and never reaches `resolve`.
+ */
+export interface CapabilityRouter {
+  /**
+   * O(1) proactive check used by the resolver. Returns the candidate list
+   * along with the satisfiable verdict so planner catalog rendering and
+   * Alternative `appliesWhen` evaluation can both use it.
+   */
+  checkSatisfiable(
+    capability: Capability,
+    requiredTags: readonly ModelTag[],
+    ctx: ResolveContext,
+  ): SatisfiableResult
+
+  /**
+   * Pick a concrete model. Throws NO_MODEL_FOR_CAPABILITY if no candidate
+   * survives filtering — which a runtime translates into fallback evaluation
+   * when it has been asked to, and into a job failure otherwise.
+   */
+  resolve(
+    capability: Capability,
+    requiredTags: readonly ModelTag[],
+    ctx: ResolveContext,
+  ): ModelCapability
+
+  /**
+   * Dump one routing decision in full: every model the router looked at, the
+   * filter that dropped each one, the surviving fallback order, and what
+   * `resolve` would do with the same arguments. Answers "why that model" /
+   * "why nothing" without a debugger; `formatRoutingExplanation` renders the
+   * result for a CLI or a log.
+   *
+   * Runs the same filters `resolve` runs, calls no model, and mutates nothing.
+   *
+   * OPTIONAL so that implementing `CapabilityRouter` directly stays a
+   * two-method job — a host router written before this existed keeps
+   * compiling. Callers must feature-detect (`router.explain?.(...)`).
+   * DESIGN: explain-optional
+   */
+  explain?(
+    capability: Capability,
+    requiredTags?: readonly ModelTag[],
+    ctx?: ResolveContext,
+  ): RoutingExplanation
+}

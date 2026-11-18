@@ -1,0 +1,27 @@
+{
+  "name": "@geode/spine",
+  "version": "1.0.0",
+  "description": "Pens product package",
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "type": "module",
+  "bin": {
+    "Pens-product": "bin/index.ts"
+  },
+  "scripts": {
+    "dev": "bun --hot run src/index.ts",
+    "test": "bun test",
+    "typecheck": "tsgo --noEmit -p tsconfig.json",
+    "lint": "biome lint .",
+    "fmt": "biome format . --write",
+    "build": "bun build src/index.ts --outdir ./dist"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-types": "latest",
+    "typescript": "^5.3.3",
+    "@biomejs/biome": "^1.7.2"
+  },
+  "dependencies": {},
+  "private": true
+}

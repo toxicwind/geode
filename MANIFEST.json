@@ -1,0 +1,176 @@
+{
+  "version": 2,
+  "generated": "2026-11-03T20:04:24.711Z",
+  "pen": "geode",
+  "theme": "inference plane",
+  "products": [
+    {
+      "name": "absurd-ttst",
+      "path": "/home/toxic/pens/geode/products/absurd-ttst",
+      "repo": "https://github.com/toxicwind/absurd-ttst.git",
+      "hasBin": false
+    },
+    {
+      "name": "audit-correlator",
+      "path": "/home/toxic/pens/geode/products/audit-correlator",
+      "repo": "https://github.com/toxicwind/audit-correlator.git",
+      "hasBin": false
+    },
+    {
+      "name": "azurite",
+      "path": "/home/toxic/pens/geode/products/azurite",
+      "repo": "https://github.com/toxicwind/azurite.git",
+      "hasBin": false
+    },
+    {
+      "name": "bge-oracle",
+      "path": "/home/toxic/pens/geode/products/bge-oracle",
+      "repo": "https://github.com/toxicwind/bge-oracle.git",
+      "hasBin": false
+    },
+    {
+      "name": "bornite",
+      "path": "/home/toxic/pens/geode/products/bornite",
+      "repo": "https://github.com/toxicwind/bornite.git",
+      "hasBin": false
+    },
+    {
+      "name": "chalcopyrite",
+      "path": "/home/toxic/pens/geode/products/chalcopyrite",
+      "repo": "https://github.com/toxicwind/chalcopyrite.git",
+      "hasBin": false
+    },
+    {
+      "name": "cleavage",
+      "path": "/home/toxic/pens/geode/products/cleavage",
+      "repo": "https://github.com/toxicwind/cleavage.git",
+      "hasBin": false
+    },
+    {
+      "name": "coreelec-mcp",
+      "path": "/home/toxic/pens/geode/products/coreelec-mcp",
+      "repo": "https://github.com/toxicwind/coreelec-mcp.git",
+      "hasBin": false
+    },
+    {
+      "name": "faceter",
+      "path": "/home/toxic/pens/geode/products/faceter",
+      "repo": "https://github.com/toxicwind/faceter.git",
+      "hasBin": false
+    },
+    {
+      "name": "forensia",
+      "path": "/home/toxic/pens/geode/products/forensia",
+      "repo": "https://github.com/toxicwind/forensia.git",
+      "hasBin": false
+    },
+    {
+      "name": "infusion",
+      "path": "/home/toxic/pens/geode/products/infusion",
+      "repo": "https://github.com/toxicwind/infusion.git",
+      "hasBin": false
+    },
+    {
+      "name": "injection-detector",
+      "path": "/home/toxic/pens/geode/products/injection-detector",
+      "repo": "https://github.com/toxicwind/injection-detector.git",
+      "hasBin": false
+    },
+    {
+      "name": "lapidary",
+      "path": "/home/toxic/pens/geode/products/lapidary",
+      "repo": "https://github.com/toxicwind/lapidary.git",
+      "hasBin": false
+    },
+    {
+      "name": "malachite",
+      "path": "/home/toxic/pens/geode/products/malachite",
+      "repo": "https://github.com/toxicwind/malachite.git",
+      "hasBin": false
+    },
+    {
+      "name": "marquee",
+      "path": "/home/toxic/pens/geode/products/marquee",
+      "repo": "",
+      "hasBin": true
+    },
+    {
+      "name": "mimetite",
+      "path": "/home/toxic/pens/geode/products/mimetite",
+      "repo": "https://github.com/toxicwind/mimetite.git",
+      "hasBin": false
+    },
+    {
+      "name": "onyx",
+      "path": "/home/toxic/pens/geode/products/onyx",
+      "repo": "https://github.com/toxicwind/onyx.git",
+      "hasBin": false
+    },
+    {
+      "name": "opal",
+      "path": "/home/toxic/pens/geode/products/opal",
+      "repo": "https://github.com/toxicwind/opal.git",
+      "hasBin": false
+    },
+    {
+      "name": "pens-completions",
+      "path": "/home/toxic/pens/geode/products/pens-completions",
+      "repo": "https://github.com/toxicwind/pens-completions.git",
+      "hasBin": false
+    },
+    {
+      "name": "perthite",
+      "path": "/home/toxic/pens/geode/products/perthite",
+      "repo": "https://github.com/toxicwind/perthite.git",
+      "hasBin": false
+    },
+    {
+      "name": "pi-skills",
+      "path": "/home/toxic/pens/geode/products/pi-skills",
+      "repo": "https://github.com/toxicwind/pi-skills.git",
+      "hasBin": false
+    },
+    {
+      "name": "pseudobrookite",
+      "path": "/home/toxic/pens/geode/products/pseudobrookite",
+      "repo": "https://github.com/toxicwind/pseudobrookite.git",
+      "hasBin": false
+    },
+    {
+      "name": "pylae",
+      "path": "/home/toxic/pens/geode/products/pylae",
+      "repo": "https://github.com/toxicwind/pylae.git",
+      "hasBin": false
+    },
+    {
+      "name": "rhodochrosite",
+      "path": "/home/toxic/pens/geode/products/rhodochrosite",
+      "repo": "https://github.com/toxicwind/rhodochrosite.git",
+      "hasBin": false
+    },
+    {
+      "name": "scintillator",
+      "path": "/home/toxic/pens/geode/products/scintillator",
+      "repo": "https://github.com/toxicwind/scintillator.git",
+      "hasBin": false
+    },
+    {
+      "name": "selenite",
+      "path": "/home/toxic/pens/geode/products/selenite",
+      "repo": "https://github.com/toxicwind/selenite.git",
+      "hasBin": false
+    },
+    {
+      "name": "spine",
+      "path": "/home/toxic/pens/geode/products/spine",
+      "repo": "https://github.com/toxicwind/spine.git",
+      "hasBin": false
+    },
+    {
+      "name": "trio",
+      "path": "/home/toxic/pens/geode/products/trio",
+      "repo": "https://github.com/toxicwind/trio.git",
+      "hasBin": false
+    }
+  ]
+}

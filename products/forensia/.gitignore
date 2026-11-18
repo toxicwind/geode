@@ -1,0 +1,59 @@
+# Forensia .gitignore — redesigned 2026-10-30.
+#
+# Why: the estate's kitchen-sink ignore (`*` + `!.gitignore`-style whitelist)
+# is extremely flawed for PRODUCTS: every new source subdir silently vanishes
+# from git until someone remembers to whitelist it, and a typo'd negation
+# un-ignores whole trees. Inverted-whitelist ignores are for SUBMODULELESS
+# COORDINATOR repos (pens/wip, pens/scaffold) whose whole point is "products
+# are auto-ignored". A PRODUCT repo wants the opposite default: everything
+# tracked, known-noise ignored.
+#
+# Rule: ignore by explicitly named path semantics, never by whitelist
+# inversion. If you add a dir that must not be committed, ADD IT HERE — do
+# not reach for `*`.
+
+# Dependency artifacts (bun.lock IS tracked; node_modules is not)
+node_modules/
+
+# Build / dist artifacts
+dist/
+out/
+*.tsbuildinfo
+
+# Runtime outputs — dossiers are regenerable evidence, keep local
+reports/
+
+# Local scratch and editor state
+*.swp
+*~
+.DS_Store
+.idea/
+.vscode/
+
+# Bun coverage output
+coverage/
+
+# Local uncommitted experiment config. forensia.config.json ships committed as
+# the default; a local override diverging from it is exactly the two-truths
+# bug, so an override stays untracked and visibly named.
+forensia.config.local.json
+# pensctl audit-gitignore --fix (standard pollution)
+.venv/
+# pensctl audit-gitignore --fix (standard pollution)
+venv/
+# pensctl audit-gitignore --fix (standard pollution)
+__pycache__/
+# pensctl audit-gitignore --fix (standard pollution)
+build/
+# pensctl audit-gitignore --fix (standard pollution)
+.cache/
+# pensctl audit-gitignore --fix (standard pollution)
+target/
+# pensctl audit-gitignore --fix (standard pollution)
+blobs/
+# pensctl audit-gitignore --fix (standard pollution)
+sessions/
+# pensctl audit-gitignore --fix (standard pollution)
+.next/
+# pensctl audit-gitignore --fix (standard pollution)
+.turbo/

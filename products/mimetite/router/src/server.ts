@@ -15,7 +15,7 @@ import { isUaBlocked, resolveUserAgent, TAU_UA, uaRetryCandidate } from "../../c
 import { joinBaseUrl } from "../../catalog/src/adapters.ts";
 import type { ProviderDef } from "../../catalog/src/types.ts";
 import { providerSemaphore, retryAfterMs, acquireProviderSlot, PROVIDER_MAX_PARALLEL, recordSuccess, recordCongestion, congestionWindowsSnapshot, estimateRequestTokens, orderCandidatesByFit, pinSessionProvider, pinnedSessionProvider } from "./primitives.ts";
-import { classify } from "./faults/index.ts";
+import { classify } from "./fault/index.ts";
 import { features } from "./config";
 import { qualify as routingId } from "./shapes.ts";
 import { healSseResponse } from "./stream-healer.ts";
@@ -746,7 +746,7 @@ async function proxyUpstream(
       }
 
       // ─── Modular fault classification ─────────────────────────────────────
-      // Each fault type is a `.lua` module under faults/modules/. The
+      // Each fault type is a `.lua` module under fault/modules/. The
       // worker classifies (status + body) → policy; this switch executes it.
       // Converted one-by-one from the old inline branches:
       //   gone (410) · ua-blocked (cf-1010) · auth-failed (401/403) ·

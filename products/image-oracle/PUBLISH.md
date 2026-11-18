@@ -1,0 +1,381 @@
+# Publishing Orchestral
+
+Maintainer handbook for releasing to npm. Since 0.1.0 (which went out by
+hand, §4–§6), releases ride **changesets** through
+`.github/workflows/release.yml`:
+
+1. A PR that changes a published package includes a changeset
+   (`pnpm changeset` — pick packages, pick the bump, write the consumer-facing
+   sentence). The seven `@orchestral/*` packages are a fixed group: any bump
+   moves the whole line.
+2. Merging to main makes the release workflow open (or refresh) a
+   **"Version Packages" PR** — versions bumped, changeset summaries prepended
+   to each CHANGELOG, lockfile refreshed. Edit that PR like any other:
+   the generated CHANGELOG bullets are raw material, rewrite them into the
+   house style there.
+3. Merging the Version Packages PR publishes: the workflow re-runs the full
+   verification wall (build / typecheck / tests / lint / api:check /
+   smoke-dist), then `pnpm -r publish` in topological order, skipping
+   versions already on the registry, then tags `v<version>` and cuts the
+   GitHub Release for that tag. Its notes are the distinct changeset summaries
+   for the version across every published package's CHANGELOG
+   (`scripts/release-notes.mjs` — core's section alone misses a version whose
+   changesets never named core, and all seven repeat each summary once per
+   package it names). §5's convention, automated — nothing to assemble by hand
+   any more.
+
+One-time setup the automation needs (all done for this repo):
+
+- **Trusted publishing (OIDC)** — each package names this repo +
+  `release.yml` as its trusted publisher, so publishing needs no long-lived
+  token and carries provenance attestation. Configured in one loop (npm CLI ≥
+  11.15; re-run it for any new package joining the line):
+
+  ```sh
+  for p in core discovery runtime patterns plan agent adapters-ai-sdk; do
+    npm trust github "@orchestral/$p" --file release.yml \
+      --repo orchestral-media/orchestral --allow-publish --yes
+  done
+  ```
+
+  Two things the first real OIDC release paid for, written down for the next
+  package that joins the line:
+
+  - **The registry refuses `npm trust` for a package it does not have yet** —
+    404 unauthenticated, 400 authenticated. So a new package cannot be trusted
+    ahead of its first release: that first publish goes out by hand (§4–§6,
+    with an `npm login` or the kept `NPM_TOKEN`), then the loop above is run
+    for it, and OIDC covers it from its next version on. The release that
+    first carries it therefore takes two passes. The first fails at the
+    newcomer, which has no trusted publisher yet; the failure stops
+    `pnpm -r publish`, so whatever comes after it in topological order has
+    not gone out either, and with the publish step red the tag and the
+    release are not cut. Publish the newcomer by hand and run the loop for
+    it, then rerun the workflow: `pnpm -r publish` skips every version the
+    registry already has (the newcomer's included) and finishes the rest,
+    and the tag and the release follow.
+  - **`--allow-publish` needs npm ≥ 11.15.** An older CLI rejects the flag
+    outright (`EUSAGE`), and dropping the flag to get past that sends a body
+    the registry rejects with 400. Upgrade npm before running the loop
+    (`npm install -g npm@latest`), not the loop's arguments.
+
+  `npm trust list @orchestral/<p>` shows a package's publishers — run it for
+  the newcomer before its first OIDC release; a package the registry has no
+  publisher entry for is the failure this list exists to prevent. The
+  workflow's `permissions:` carries the `id-token: write` this depends on.
+- The repository setting **Settings → Actions → General → Workflow
+  permissions → "Allow GitHub Actions to create and approve pull requests"**
+  — without it the action cannot open the Version Packages PR, whatever the
+  workflow's `permissions:` block says.
+- **Rollback**: the `NPM_TOKEN` repository secret (granular automation token,
+  publish scope for `@orchestral`) is kept but unused. If OIDC has to be
+  backed out, re-add `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}` to the
+  changesets step's `env:` and publishing works the token way again.
+
+Two behaviours to know about, both accepted on purpose:
+
+- **The Version Packages PR carries no CI checks.** GitHub does not trigger
+  workflows for pushes made with `GITHUB_TOKEN`, and that PR is one. The
+  defence is that `ci:publish` re-runs the entire verification wall before
+  anything reaches the registry; if PR-level checks are ever wanted, hand the
+  action a PAT via `github-token`.
+- **A version number edited by hand on main publishes on that push.** With no
+  changesets pending, the workflow always runs the publish script, and
+  `pnpm -r publish` publishes whatever versions the registry does not have.
+  Version changes go through changesets, never by hand.
+
+`@orchestral/dsh-plugin` is excluded from the automation on both ends
+(changesets `ignore`, publish `--filter`) — it versions against its
+dev-preview host and goes out by hand (§7). Because it is ignored, it never
+gets a changeset: bump it directly in its package.json. In particular a
+single changeset must never name it TOGETHER with any of the seven —
+changesets hard-errors on a changeset that mixes ignored and released
+packages, and the error surfaces as a red release workflow on main.
+
+The sections below are the manual path: what the automation executes, kept
+current both as its documentation and as the fallback when you need to
+publish by hand.
+
+Two version lines ship from this repo:
+
+- **`@orchestral/*`** — `core`, `discovery`, `runtime`, `patterns`, `plan`,
+  `agent`, `adapters-ai-sdk`. Seven packages on one version line, released
+  together.
+- **`@orchestral/dsh-plugin`** — the deepseek-harness bridge, versioned
+  independently against its dev-preview host (see §7).
+
+## 0. First push (once)
+
+This repository starts from a fresh history, so the first push has nothing to
+merge and nothing to rebase onto.
+
+Check that `pnpm-lock.yaml` is committed before pushing. CI installs with
+`--frozen-lockfile`, so a history whose first commit has no lockfile fails on
+its very first run. If it is missing, run `pnpm install` and commit it.
+
+```sh
+# create an EMPTY repo at github.com/orchestral-media/orchestral first —
+# no README, no license, no .gitignore
+git remote add origin git@github.com:orchestral-media/orchestral.git
+git push -u origin main
+```
+
+Then, in the repository settings: enable **private vulnerability reporting**
+(Settings → Code security), which is the channel `SECURITY.md` points people
+at.
+
+## 1. Claim the npm scope
+
+`@orchestral` is not a username scope, so it has to exist as an npm
+organization before anything can be published under it. Creating one is free
+for public packages: <https://www.npmjs.com/org/create> → name `orchestral`.
+
+Verify, in this order:
+
+```sh
+npm whoami                        # you are logged in, and as whom
+npm org ls orchestral             # you appear, as owner — proves the scope is yours
+npm access list packages @orchestral   # what already exists under the scope
+npm view @orchestral/core         # 404 until the first publish
+```
+
+`npm view @orchestral/core` returning 404 only means the *package name* is
+unused — it is not evidence that the scope belongs to you. `npm org ls` is the
+check that matters. Publishing into a scope you do not own fails with `E403`
+after the tarball is already built, which is a confusing place to discover it.
+
+> Measured 2026-08-16: `npm view @orchestral/core` → `404`. The scope's
+> ownership was not verified at that point.
+
+## 2. Always `pnpm publish`, never `npm publish`
+
+Each package's top-level `main` / `types` / `exports` point at `./src/index.ts`
+so the workspace and the examples run TypeScript sources directly. The
+published shape lives in `publishConfig`. **pnpm** substitutes those fields (and
+resolves `workspace:*` to a real version) when it packs; **npm** does not — npm
+only honours a handful of `publishConfig` keys (`registry`, `access`, `tag`),
+not `main`/`types`/`exports`.
+
+Publishing with npm therefore ships a package whose entry point is a `.ts` file
+that is not even in the tarball (`files` lists `dist`). It installs and then
+fails at import.
+
+Measured 2026-08-16 (pnpm 10.28.1, npm bundled with Node 24.17.0), unpacking
+the tarball and reading `package/package.json`:
+
+| | `npm pack` | `pnpm pack` |
+| --- | --- | --- |
+| `main` | `./src/index.ts` | `./dist/index.js` |
+| `types` | `./src/index.ts` | `./dist/index.d.ts` |
+| `exports["."]` | `./src/index.ts` | `{ types: ./dist/index.d.ts, import: ./dist/index.js }` |
+| `dependencies["@orchestral/core"]` (patterns) | `workspace:*` | `0.1.0` |
+
+If you ever want to inspect a tarball without triggering the `prepack` build,
+`npm_config_ignore_scripts=true pnpm pack --pack-destination /tmp/x` works;
+`pnpm pack` has no `--ignore-scripts` flag of its own.
+
+## 3. Pre-flight
+
+From a clean tree on `main`, with CI green:
+
+```sh
+pnpm install
+pnpm build
+pnpm test
+pnpm typecheck
+pnpm api:check
+pnpm lint
+node scripts/smoke-dist.mjs     # or `pnpm smoke:dist`, which rebuilds first
+```
+
+`scripts/smoke-dist.mjs` is the one check that exercises what npm actually
+ships: it imports each package's built `dist/index.js` by file URL, redirects
+the bare `@orchestral/*` specifiers between them to their dist builds (the
+resolution a consumer gets after publish, which no test covers), and runs a
+registry → router → runtime dispatch end to end. Do not skip it — every other
+gate reads either the sources or the `.d.ts`.
+
+If any pattern changed since the last release, regenerate the catalog table in
+`packages/orchestral-patterns/README.md` — it is derived from the built dist and
+ships inside the tarball:
+
+```sh
+pnpm docs:catalog
+git diff --exit-code packages/orchestral-patterns/README.md   # commit if it moved
+```
+
+Set the release date. Each package's `CHANGELOG.md` heads its section with
+`## [0.1.0] - <date> — Initial public release`, stamped with a placeholder
+date from when the entry was written. Update it to the day the publish
+actually lands:
+
+```sh
+# one line per package that shipped that version — check the date on every one
+grep -rn '^## \[0.1.0\]' packages/*/CHANGELOG.md
+```
+
+Flip the pre-publish banners. Two READMEs open their install sections with
+`> **Not on npm yet** — 0.1.0 publishes shortly. …` — the root `README.md`
+(Quickstart) and `packages/orchestral-core/README.md` (Install, which is the
+npm package page). Delete both lines on the day, and grep to be sure no third
+copy has appeared:
+
+```sh
+grep -rn "Not on npm yet" README.md packages/*/README.md
+```
+
+Version bump, when releasing something other than the current `0.1.0`:
+
+- The seven `@orchestral/*` packages move together; keep the version line
+  identical. `@orchestral/dsh-plugin` does not — bump it on its own.
+- Update each package's `CHANGELOG.md`.
+- Internal dependencies are all `workspace:*`, so nothing else needs editing —
+  pnpm resolves them to the real version at pack time.
+- Commit the bump before publishing; `pnpm publish` refuses a dirty tree.
+
+## 4. Publish, in dependency order
+
+Each `pnpm publish` runs that package's `prepack` (a full `build`) first, so
+the dist in the tarball is always freshly built.
+
+```sh
+pnpm --filter @orchestral/core publish --access public
+pnpm --filter @orchestral/adapters-ai-sdk publish --access public
+pnpm --filter @orchestral/discovery publish --access public
+pnpm --filter @orchestral/runtime publish --access public
+pnpm --filter @orchestral/plan publish --access public
+pnpm --filter @orchestral/patterns publish --access public
+pnpm --filter @orchestral/agent publish --access public
+```
+
+Order matters: every package ships a hard dependency on the `@orchestral/*`
+packages below it, so publishing one early leaves a window in which
+`npm install` cannot resolve it. The graph, which is what that order is a
+topological sort of:
+
+```
+core             (nothing)
+adapters-ai-sdk  core            (+ `ai` as a peer; nothing depends on it)
+discovery        core
+runtime          core
+plan             core
+patterns         core, plan
+agent            core, patterns
+```
+
+`adapters-ai-sdk`, `discovery`, `runtime` and `plan` only need `core`, so they
+can go anywhere after it. The tail is the only part that is forced: `patterns`
+ships `meta_plan` and so must follow `plan`, and `agent` reads the pattern
+catalog and so must follow `patterns`. `adapters-ai-sdk` is a leaf (no
+`@orchestral/*` package depends on it), so its position only has to be after
+`core`.
+
+- With 2FA enabled, append `--otp=<code>` (the code expires fast — publish one
+  package per code if needed).
+- `pnpm publish` enforces a clean tree and the `main` branch by default. Fix
+  the tree rather than reaching for `--no-git-checks`.
+- `pnpm -r publish --access public` publishes every non-private package in
+  topological order in one shot. It is correct, but the explicit commands fail
+  more legibly, and it would sweep up `@orchestral/dsh-plugin` — which is on
+  its own version line — along with the seven. `examples/*` being
+  `private: true` is the only thing keeping those out of it.
+- A mistaken publish can be undone within 72 hours (`npm unpublish
+  @orchestral/core@0.1.0`). After that, the version is permanent — publish a
+  new patch instead.
+
+## 5. Tag and release
+
+```sh
+git tag -a v0.1.0 -m "v0.1.0"
+git push origin v0.1.0
+gh release create v0.1.0 --title "v0.1.0" --notes-file <notes>
+```
+
+Notes are assembled by hand from the seven `CHANGELOG.md` files. One tag and
+one GitHub Release per version line, since the packages move together.
+
+## 6. Verify what consumers get
+
+Install from the registry into a throwaway directory — not a workspace, so
+nothing resolves to a local path:
+
+```sh
+mkdir /tmp/orchestral-verify && cd /tmp/orchestral-verify
+npm init -y
+V=0.1.0                          # the version you just published
+npm install @orchestral/core@$V @orchestral/patterns@$V @orchestral/runtime@$V @orchestral/plan@$V zod
+node --input-type=module -e "
+  import { PatternRegistry } from '@orchestral/core'
+  import { InMemoryJobStore } from '@orchestral/core/memory'
+  import { InlineRuntime } from '@orchestral/runtime'
+  import { createTextToImagePattern } from '@orchestral/patterns'
+  import { validatePlan } from '@orchestral/plan'
+  console.log(typeof PatternRegistry, typeof InMemoryJobStore, typeof InlineRuntime, typeof createTextToImagePattern, typeof validatePlan)
+"
+
+# the two optional packages, which a host installs only if it wants them
+npm install @orchestral/discovery@$V @orchestral/agent@$V
+node --input-type=module -e "
+  import { PatternSearchIndex, createPatternSearch } from '@orchestral/discovery'
+  import { createOrchestratorAgent } from '@orchestral/agent'
+  console.log(typeof PatternSearchIndex, typeof createPatternSearch, typeof createOrchestratorAgent)
+"
+```
+
+```sh
+# the AI SDK adapters, which a host installs only if it is on the AI SDK
+npm install @orchestral/adapters-ai-sdk@$V ai
+node --input-type=module -e "
+  import { fromImageModel } from '@orchestral/adapters-ai-sdk'
+  console.log(typeof fromImageModel)
+"
+```
+
+Five `function`s (then three more, then one more) means the published entry points, the type
+surface and the cross-package resolution all landed. One of those five is the
+subpath check: `@orchestral/core/memory` resolving proves the two subpath
+entries ship, since the root entry no longer answers for the `InMemory*` stores.
+`@orchestral/plan` is installed by name here because a host that builds or
+preflights a plan installs it that way; `@orchestral/patterns` also depends on
+it (it ships `meta_plan`), which is why §4 publishes `plan` first of the two.
+`@orchestral/runtime` NOT
+pulling `@orchestral/discovery` in is part of what the first block proves:
+retrieval is a seam the host wires (`InlineRuntimeInit.patternSearch`), so a
+runtime install carries no search engine and the second block is a host asking
+for one. Also check the package pages render the
+README and show the Apache-2.0 license.
+
+## 7. `@orchestral/dsh-plugin`, separately
+
+<!-- DESIGN: publish-dsh-separately -->
+
+The bridge is a leaf package on its own version line: it depends on
+`@orchestral/core` and `@orchestral/runtime`, and nothing depends on it. Publish
+it *after* the `@orchestral/*` line it pins, and only when you mean to — a
+deepseek-harness release can break it without anything else in this repo
+changing, which is exactly why it does not share the version line.
+The root `ci:publish` `--filter "!@orchestral/dsh-plugin"` and the changesets `ignore` entry stay where
+they are; with the manifest flag in place they are redundant, and redundancy is what you want on the
+"don't ship it" side.
+
+The package carries `"private": true`, so npm refuses it until that line is removed. That is the point:
+publishing this bridge is a one-line, reviewable edit to its own manifest, not a filter someone loosened
+elsewhere. Remove the flag in the same commit as the publish, and put it back if the publish was a
+one-off.
+
+```sh
+# 1. delete `"private": true` from packages/orchestral-dsh-plugin/package.json
+pnpm --filter @orchestral/dsh-plugin publish --access public
+```
+
+Before its first publish, run it against a real `dsh` at least once. The
+package's tests are a mock `ctx` plus a typecheck against the real
+`@deepseek-ai/*` types — enough to catch a signature drift, not enough to prove
+the plugin loads. Booting dsh needs its build scripts approved
+(`pnpm approve-builds` — `node-pty`, `esbuild`, and friends), which is a local
+decision, not something CI or the tests need.
+
+## Not set up (deliberate)
+
+- **Prereleases / dist-tags.** Everything goes to `latest`. If that changes,
+  changesets pre-mode (`changeset pre enter next`) is the mechanism.

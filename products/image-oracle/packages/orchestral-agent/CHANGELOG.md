@@ -1,0 +1,465 @@
+# Changelog
+
+## 0.6.0
+
+### Minor Changes
+
+- f00872f: A Pattern that produces assets takes an optional `input.name`, and the produced asset's handle is that name.
+  
+  **Why.** Handles were only ever minted, at record time and in completion order. A model that dispatched eleven images in parallel and then wrote `asset://image_4` from its own call order got a real image — the wrong one — and nothing failed. A name bound for the dispatch makes a reference the model did not copy miss with `HANDLE_NOT_FOUND` instead of landing on a neighbour.
+  
+  **What the model sends.** Registration adds `name` to the tool inputs of every Pattern whose outputs carry `assets[]` — atomics, metas, plans and agents alike — so `dispatch_pattern`, always-load tools, `find_pattern` and the agent loop all carry it. It is trimmed, `asset://hero` reads as `hero`, and a blank name means none. A name in any asset kind's mint grammar (`image_3`, `video_1`) is refused, so a chosen name can neither collide with a minted handle nor be read as a replay that moves the ledger's counter. One product takes the name; several take `<name>-1` … `<name>-n` in output order (`deriveNamedHandles`). A `name` on a Pattern that produces no assets is refused with `INPUT_VALIDATION_FAILED` rather than dropped.
+  
+  **What the host does.** `resolveAssetReferences` reads the name through the new `productNameOf` and refuses one the context already holds — exactly, or as a `<name>-<n>` — with a new `AssetResolutionError` variant, `HANDLE_TAKEN`, before anything else is evaluated; an exhaustive `switch` over the codes gains a case. `AgentAssetBridge.recordOutput` receives the normalised name, and the agent loop runs `resolveForDispatch` for a named dispatch even when the Pattern declares no asset slots. Just before writing a named call's products, a bridge runs `resolveAssetReferences({ name }, [], index)` again over the context as it stands, minus the assets this call is recording: a same-turn call may have taken the name since, and the store's `HANDLE_COLLISION` would not notice `hero` beside `hero-1`, `hero-2`, while a replay of the call's own products (a retried write, a dedupe hit) keeps the name. On `HANDLE_TAKEN` it records all of that call's products under minted handles and says so in a top-level notice in the tool result, as it does when a write collides. `mintNext`, `parseMintedHandle`, `producesAssets` and `RESERVED_INPUT_KEYS` are exported, so a durable `AssetStore` writes handles by the same rule as `InMemoryAssetStore` and a host can refuse a user-authored schema before saving it.
+  
+  **Breaking (0.x, no shims).** `references` and `name` are reserved top-level input keys: registration derives both on a copy of the Pattern, and a hand-written top-level `references` or `name` throws `INPUT_RESERVED_KEY` (`details.key` names it, `details.reason` is `'hand-written'`) — delete it, registration derives it. Inputs that are not a `z.object` are judged on their rendered JSON Schema, so the key counts in any member of a union or part of an intersection too. The same code with reason `'undeclared'` is new as well: it refuses a derived field the Pattern's own declaration no longer produces, which happens when a host clears `assetNeeds` on a factory-built Pattern (an override that still declares slots is re-derived instead) or re-registers a registered Pattern whose outputs no longer carry `assets[]`. `extendInputsWithReferences` no longer replaces a hand-written `references`; it throws the same error. A `references` produced by `extendInputsWithReferences`, or placed from `deriveReferencesSchema(...)` unwrapped, is recognised and re-derived from the Pattern's own `assetNeeds`. Nested keys are not reserved. `AGENT_BASE_INPUT_SCHEMA` no longer declares `references`: an agent that declares `assetNeeds` gets the derived field, and one that declares none has none — it was never resolved. `AgentBaseInput`, `agentInputSchema`'s result and `OrchestratorInputSchema` change type with it. `agentInputSchema({ name: … })` throws at construction, as `agentInputSchema({ references: … })` already did, with an `AGENT_INPUT_RESERVED_FIELD` error — a plain `Error` with that message prefix and no `details.key` — not `INPUT_RESERVED_KEY`. An asset-producing Pattern whose tool inputs is not a `z.object` is refused at registration (`EXTEND_NAME_UNSUPPORTED_INPUTS`).
+  
+  **Prompt caches miss once.** Every asset-producing Pattern's tool schema gains a field, and agent schemas lose their hand-written `references`, so provider-side prompt caches built on the old tool definitions invalidate once.
+  
+  **Part of the work.** `name` is hashed with the rest of `input`, with no special case: a retry repeats the name and still dedupes, and the same prompt under two names is two products. Nothing is added to `JobSpec`. `meta_plan` reads its DAG without the reserved keys, so a named one-shot plan validates as before. A `references` key sent to `meta_plan`, which declares no slots, used to fail with `PLAN_SCHEMA`; it is now stripped and ignored, like a stray key on any Pattern without slots — except on the agent loop, where a call that also carries a `name` goes through the bridge's resolution pass, which refuses any slot that `references` names with `UNKNOWN_SLOT` before anything is dispatched.
+  
+  **Plans.** A `name` in a plan step's input is refused with the new `PlanProblemCode` `PLAN_STEP_NAME_NOT_ALLOWED`: a step's products are never recorded under a name, so the plan names its own product instead. A step's `input.references` is unchanged.
+  
+  **Known limitation.** A hand-written meta's `compose` is not validated, so a `name` it forwards into a sub-step input is never recorded and has no effect.
+
+### Patch Changes
+
+- Updated dependencies [f00872f]
+- Updated dependencies [9ca4d97]
+  - @orchestral/core@0.6.0
+  - @orchestral/patterns@0.6.0
+
+## 0.5.0
+
+### Minor Changes
+
+- 073e433: Every AI SDK adapter now refuses a resolved asset slot it does not send to the provider.
+  
+  **Tightened (0.x, no shims):** `fromVisionModel`, `fromTranscriptionModel` and `fromLanguageModel` fail the call with `ASSET_SLOT_NOT_SUPPORTED` when it carries a resolved slot they do not map, before anything reaches the provider. Until now they ran the call and dropped the slot: a second slot beside image-to-text's or ASR's `source`, or any slot on a `text-generation` call, never reached the model, and nothing in the output said so. `fromImageModel` and `fromSpeechModel` already refused; the rule is now the same across all five. A host that relied on the silent drop removes the reference from the input, or wraps the adapter and sends the slot itself.
+  
+  Two changes landing alongside this one are internal and change no behaviour: the runtime reads core's `JOB_TERMINAL_STATUSES` instead of its own copy of the terminal set, and `@orchestral/plan`'s two validation layers share one helper for a step's input schema.
+
+### Patch Changes
+
+- Updated dependencies [073e433]
+  - @orchestral/core@0.5.0
+  - @orchestral/patterns@0.5.0
+
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [cc7d6d6]
+  - @orchestral/core@0.4.0
+  - @orchestral/patterns@0.4.0
+
+## 0.3.0
+
+### Minor Changes
+
+- ab00fc3: Enforcement now matches the argued design: `buildAlwaysLoadDescriptors` filters
+  through `resolveExposure` before reading `exposureMode`; middleware
+  short-circuit outputs pass the same exit gate as adapter outputs
+  (`OUTPUT_SCHEMA_MISMATCH`), whatever the Pattern's kind — no finish tool ran
+  there, so a supplied value answers for itself, and a cache entry the schema now
+  rejects fails loudly instead of being served; an agent failure tool-result
+  carries `produced_handles` instead of raw asset ids. Single sources reclaimed:
+  `toJsonSchema` is the only outbound zod→JSON Schema edge (guarded by a static
+  test), handle minting and subagent-blocklist matching are single functions,
+  the orchestrator derives its tool list from the patterns package instead of a
+  hand copy, and `buildAgentInlineCore` now takes the owner pattern id and fails
+  loudly on allowlisted ids missing from the registry (internal signature
+  change — it is not on the `@orchestral/runtime` barrel). AI SDK adapters fail
+  loudly on unsupported asset slots and no longer lose providerOptions under
+  namespaced or relayed provider ids. DESIGN.md citations are now anchors
+  verified by a static test.
+  
+  **The per-Pattern opt-out from the sub-agent blocklist is gone.** The blocklist
+  beat `loop.toolPatternIds` at dispatch already; it now beats it at the catalog
+  too, so an `agent_` id an author lists is skipped when the inline core is built
+  rather than rendered as a tool whose every call comes back `SUBAGENT_BLOCKED`.
+  Listing one was never a widening — it was a way to advertise a tool that did
+  not work — and the catalog and the call side now say the same sentence.
+  Opening recursion means overriding `DEFAULT_SUBAGENT_BLOCKLIST` itself, which
+  is the honest place to argue for it: one decision, visible at the seam that
+  enforces it, instead of per-Pattern grants that only look like permission.
+  
+  **New error codes.** `AGENT_TOOL_PATTERN_NOT_REGISTERED` fails an agent
+  dispatch whose `loop.toolPatternIds` names ids the registry does not have —
+  before the loop starts, since an unsatisfiable allowlist is an authoring error
+  and nothing has been dispatched yet to pay for it. `ASSET_SLOT_NOT_SUPPORTED`
+  is the loud half of the adapter change above: a slot the adapter cannot send is
+  refused by name instead of being dropped on the way to the provider.
+  `NO_SOURCE_ASSET` and
+  `SOURCE_ASSET_NOT_LOADED` on the `automatic-speech-recognition` path are now
+  carried as `code` on the thrown error, not just spelled in its message, so a
+  host narrows on them the way it narrows on every other orchestral failure.
+  
+  **New public exports**, all additive:
+  
+  - `matchSubagentBlocklist` and the `SubagentBlocklist` type
+    (`@orchestral/core`) — the one matcher both the catalog and the call guard
+    ask, so a host that wants to predict a refusal asks it too rather than
+    re-implementing the prefix rule.
+  - `buildAlwaysLoadDescriptors` takes a `surface` option (`@orchestral/core`):
+    `'chatTurn'` (default, unchanged) or `'agentLoop'`, so a sub-agent's inline
+    core admits an `exposure: 'agent-tool'` Pattern and excludes a chat-only one.
+  - `FIRST_PARTY_PATTERN_IDS` (`@orchestral/patterns`) — the shipped id catalog
+    as data, grouped by declared kind. This is what ended the orchestrator's hand
+    copy; a host registering a subset can read it too.
+  - `ORCHESTRATOR_DEFAULT_PROMPTS`, `OrchestratorAgentInit`,
+    `OrchestratorPromptOverrides`, and a widened
+    `createOrchestratorAgent(init?)` (`@orchestral/agent`) — prompt body, tool
+    universe and abort mode are defaults this package picked on your behalf, and
+    the alternative to overriding them was forking a package whose entire content
+    is one declaration. The no-argument call is unchanged.
+  - `AgentAssetBridge.handlesFor` (`@orchestral/runtime`) — optional, so an
+    existing bridge still type-checks. Implement it and a failed child dispatch
+    reports its partial work as handles the loop can cite; leave it out and the
+    loop is told a count, as before.
+  
+  **`agent_orchestrator` no longer declares `loop.asyncToolPatternIds`.** It has
+  one tool universe on purpose. The field prunes the catalog to
+  `toolPatternIds ∩ asyncToolPatternIds` and only when `defaultExecutionMode` is
+  `'async'`, which this pattern never set — so the declaration bought no
+  behaviour and was a second list to keep in sync.
+  
+  **`image-to-text`: an unknown `mode` no longer throws.** The AI SDK vision
+  adapter keeps a copy of the pattern's `mode` enum (it does not depend on
+  `@orchestral/patterns`), and a mode with no entry there is now a mode it has no
+  default instruction for and nothing more: the call runs with no system text,
+  exactly as it does when the caller passes a `prompt`. This is the one place on
+  this branch where the change is toward silence rather than away from it, and
+  the reason is asymmetry — the failure it removes was "patterns added a word" to
+  becoming a hard outage in every host wrapping this adapter, for a mode whose
+  only effect is a sentence the caller could have written themselves. A test
+  asserts the table still covers the pattern's enum, so the drift shows up in CI
+  instead of in production.
+  
+  **`@orchestral/agent` dropped its `@orchestral/runtime` dependency**, which it
+  did not use: the package is a pure declaration and the runtime is where the
+  agent seam lives, not where the Pattern is authored. If you were relying on the
+  transitive install to get `@orchestral/runtime`, add it to your own
+  dependencies — you were always the one constructing the runtime.
+- ab00fc3: **Package boundaries.** Four things that were split across packages, or bundled
+  into one, moved to where they belong: the plan feature became its own package,
+  retrieval became a seam a host injects, core's batteries moved one level down,
+  and the job state machine became a function. Breaking — this is 0.x, where a
+  minor may break — and every break is one import line or one call site.
+  
+  ## `@orchestral/plan` — the plan feature is one package
+  
+  A plan used to be spread over three. The wire schema and `validatePlan` were in
+  `@orchestral/core`, `planToMeta` in `@orchestral/patterns`, `preflightPlan` in
+  `@orchestral/runtime`. The primitive underneath all three — "read a `$ref` off a
+  step's input" — existed three times, with three depth rules and two head filters
+  between them, and two of the copies carried a comment asking a human to keep
+  them in step. What those comments guarded is the plan's central promise: the
+  string layer 1 validates is the string the interpreter substitutes and the
+  string preflight bills for. It is one function now, and the promise is a call
+  rather than a discipline. Core also sheds its largest file — a 1300-line wire
+  format validator that served exactly one Pattern.
+  
+  - `@orchestral/core` no longer exports `PlanDagSchema`, `PlanStepSchema`,
+    `PlanRetrySchema`, `PlanOutputSchema`, `PLAN_VALUE_REF_RE`,
+    `PLAN_ASSET_REF_RE`, `PLAN_STEP_ID_RE`, `validatePlan`, `assertPlanValid`,
+    `planRefine`, `PlanInvalidError`, or the `PlanDag` / `PlanStep` / `PlanRetry` /
+    `PlanOutput` / `PlanProblem` / `PlanProblemCode` / `PlanPatternLookup` /
+    `PlanValidateOptions` types. Import them from `@orchestral/plan`; the shapes
+    are unchanged.
+  - `@orchestral/runtime` no longer exports `preflightPlan`,
+    `formatPlanPreflight`, `PlanPreflightDeps`, `PlanPreflightReport`,
+    `PlanPreflightStep`, `PlanStepRouting` or `PreflightAlternative`. Import them
+    from `@orchestral/plan` and add it to your dependencies. The signatures are
+    unchanged — including `deps.resolveCtx`, still the same provider you hand
+    `InlineRuntimeInit.resolveCtxProvider`.
+  - `@orchestral/patterns` no longer exports `planToMeta`, `runPlan`,
+    `PLAN_TOOL_DESCRIPTION`, `PlanMetaPattern`, `PlanToMetaOptions` or
+    `RunPlanOptions`. Import them from `@orchestral/plan`. It **keeps**
+    `createPlanMeta` and `PLAN_PATTERN_ID`, because this package still ships
+    `meta_plan` — its manifest names that factory, and the id is a member of
+    `FIRST_PARTY_PATTERN_IDS.meta`. Both are re-exported from `@orchestral/plan`,
+    which this package depends on, so you get it transitively.
+  
+  There is no deprecation cycle on any of these: the old names are gone, not
+  aliased, so a stale import fails at build time instead of resolving to a shim.
+  
+  One behaviour change, unreachable in a valid plan: the interpreter's dependency
+  walk used to have no depth limit while the other two capped at 64. All three cap
+  at 64 now, and `validatePlan`'s rule 24 already refuses an input nested deeper
+  than that, so no plan that validates can tell the difference.
+  
+  ## Retrieval is a seam, so `find_pattern` is conditional
+  
+  `@orchestral/runtime` no longer depends on `@orchestral/discovery`. Installing
+  the runtime no longer installs a search engine. Retrieval reaches an agent loop
+  through `InlineRuntimeInit.patternSearch`, the fourth seam alongside
+  `agentRunImpl`, `askUser` and `AgentAssetBridge`.
+  
+  ```ts
+  import { createPatternSearch, QUERY_SYNTAX_HINT } from '@orchestral/discovery'
+  
+  new InlineRuntime({
+    patternSearch: createPatternSearch(registry, { router }),
+    catalogOptions: { querySyntaxHint: QUERY_SYNTAX_HINT },
+  })
+  ```
+  
+  - **Without the seam, an agent loop gets no `find_pattern` descriptor.** Its
+    catalog is the always-load inline core plus `dispatch_pattern` (plus the finish
+    tool). A loop whose `loop.toolPatternIds` are all `always-load` is unaffected;
+    a loop that was meant to *discover* Patterns loses that ability until the host
+    adds the two lines above.
+  - **`FindPatternInputSchema.query`'s `describe` no longer carries the query
+    mini-language** (`+term`, `select:`, `namespace:`, `<prefix>*`, bare id) or the
+    tokenizer guidance. Core names the input contract; it stopped describing one
+    index's syntax. This changes the serialised `find_pattern` tool definition —
+    the KV-cached prompt prefix — for **every** host, wired or not. Pass
+    `@orchestral/discovery`'s `QUERY_SYNTAX_HINT` through the new
+    `BuildCatalogDescriptorsOptions.querySyntaxHint` to put the prose back.
+  - **New:** `PatternSearch` and `PatternSearchRequest` (types) on
+    `@orchestral/core`; `BuildCatalogDescriptorsOptions.includeFindPattern`
+    (default `true`) and `.querySyntaxHint`; `ResolveDispatchOptions` and a
+    fourth, optional `opts` parameter on `resolveDispatchTarget` (existing
+    three-argument calls are unaffected); `createPatternSearch`,
+    `CreatePatternSearchOptions` and `QUERY_SYNTAX_HINT` on
+    `@orchestral/discovery`; `InlineRuntimeInit.patternSearch`.
+  - **Model-visible text changes only when no seam is wired.** `includeFindPattern`
+    is one question reaching every string, not just the descriptor list:
+    `dispatch_pattern` is still emitted without a seam, but its description and
+    its `pattern_id` / `input` `describe`s switch to spellings that name no tool
+    the catalog lacks, and `resolveDispatchTarget`'s refusal hints do the same via
+    `opts.hasPatternSearch` (the runtime passes it for an unwired agent loop), as
+    do two agent-loop hints and the `UNKNOWN_TOOL` message. A wired host gets
+    byte-identical strings to before.
+  - `PatternBase.searchHint`'s doc comment no longer describes BM25 boost tiers
+    (doc only — the field, its type and every consumer are unchanged).
+  - **`@orchestral/agent`:** `ORCHESTRATOR_SYSTEM_PROMPT` still tells the model to
+    use `find_pattern`, because an orchestrator whose tool universe is the whole
+    first-party catalog is meant to be wired. If you deliberately run it without
+    retrieval, override the prompt through `prompts.orchestratorSystem` rather than
+    shipping a prompt that names a tool the loop lacks.
+  
+  ## `@orchestral/core/memory` and `@orchestral/core/routing`
+  
+  **Breaking.** Core ships two subpath entries and the root entry no longer
+  re-exports what they own:
+  
+  | Moved to | Symbols |
+  | --- | --- |
+  | `@orchestral/core/memory` | `InMemoryJobStore`, `InMemoryAssetStore`, `InMemoryTranscriptStore` |
+  | `@orchestral/core/routing` | `createDefaultCapabilityRouter`, `NoModelForCapabilityError`, `ModelExcludedError`, `DefaultCapabilityRouterDeps` |
+  
+  Nothing moved between packages and no signature changed. The point is that "core
+  is the vocabulary" is now a claim an import list can contradict. A deprecated
+  alias on the root would have left both spellings resolvable and kept the sentence
+  unfalsifiable, so there is none. Migration is one line per import: move the
+  symbol out of the `from '@orchestral/core'` list. The contracts these implement —
+  `JobStore` / `AssetStore` / `TranscriptStore` / `CapabilityRouter` and their
+  companion types — stay on the root entry, because that is what a host writing its
+  own implementation reads.
+  
+  ## One resolver for by-id dispatch
+  
+  **Breaking.** `resolveSlashDispatch`, `SlashDispatchError` and
+  `SlashDispatchResolution` are gone, and with them the `SLASH_PATTERN_NOT_FOUND` /
+  `SLASH_NOT_EXPOSED` vocabulary. `resolveDispatchTarget(registry, input, 'slash')`
+  was already the same gate — `resolveExposure(...).slash`, fail-closed — and now
+  also accepts an unqualified short name, which was the one thing the slash module
+  added. Two paths meant two error vocabularies for one refusal.
+  
+  Migration: replace `resolveSlashDispatch(registry, id)` with
+  `resolveDispatchTarget(registry, { pattern_id: id, input }, 'slash')`. It
+  validates the input too, and returns the Pattern rather than just its id
+  (`target.pattern.id` is the canonical full id). Map `SLASH_PATTERN_NOT_FOUND` →
+  `PATTERN_NOT_FOUND` and `SLASH_NOT_EXPOSED` → `PATTERN_NOT_DISPATCHABLE`.
+  
+  Short-name resolution now applies to **every** audience, not just slash: which
+  spelling of an id arrived is orthography, not a surface. `PATTERN_NOT_FOUND`'s
+  message says so (`… is not registered (tried full id and short name).`), and its
+  `hint` no longer points a person-facing surface at `find_pattern` — a tool the
+  person never called.
+  
+  ## One way into the registry
+  
+  **Breaking.** `PatternRegistry.add()` is removed; call `register()`. The
+  `spec.alternatives` expansion that `add` was named for moved into `register` some
+  time ago, leaving two names for one entry point and a class doc still describing a
+  layer between them. `registry.add(...)` → `registry.register(...)`, and
+  `Parameters<typeof registry.add>[0]` → `Parameters<typeof registry.register>[0]`.
+  `PatternScope.add` is unaffected — that one is the scope's own verb, not an alias.
+  
+  **Breaking.** `PatternRegistry.listForCatalog()` is removed. It was public API
+  with no caller in this repo, and it silently returned atomics only — a filter
+  neither its name nor its signature mentioned. The replacement is one line that
+  shows the filter: `[...registry].filter((p) => p.kind === 'atomic')`. Catalog
+  rendering for an LLM was never this method's job (`buildCatalogDescriptors`), and
+  neither was retrieval (`PatternSearchIndex` in `@orchestral/discovery`).
+  
+  `idCarriesKind` had two JSDoc blocks stacked in front of it, of which TypeScript
+  read only the second; they are merged.
+  
+  ## The job state machine is one exported function
+  
+  `nextJobState(prev, next)` ships on the root entry of `@orchestral/core`, with
+  `JobTransition`, `JobLifecycleEventType` and `JOB_TERMINAL_STATUSES`. It answers
+  both halves of what a `JobStore` needs to know about a status write: whether the
+  move is legal, and which `JobEvent` a legal one produces.
+  
+  Both halves used to be unwritten. The transition → event map lived in a private
+  switch inside `InMemoryJobStore` — a dev-only store — so a durable host store
+  re-derived it from a comment. And "a terminal status is terminal" was asserted in
+  prose and enforced nowhere: `update()` checked that the status was a legal
+  *value*, not that the move was a legal *transition*, so `done → running` wrote
+  cleanly and emitted `job:started` after `job:completed`. No subscriber can tell
+  that apart from a job genuinely running again, which is what makes it worth a
+  function rather than a paragraph.
+  
+  **`InMemoryJobStore` now refuses an illegal write** — `insert`, `insertIfAbsent`,
+  `update` and `conditionalUpdate` all ask `nextJobState` first — and throws a coded
+  `JOB_STORE_ILLEGAL_TRANSITION` error carrying `details: { jobId, from, to }`. A
+  refusal leaves the row and the subscribers untouched, so a rejected patch cannot
+  half-apply. `conditionalUpdate` throws rather than returning `false`: `false`
+  means "the row moved on", which a caller retries, and an illegal move is not
+  something to retry.
+  
+  The refused set is exactly two rules. A terminal row (`done` / `error` /
+  `cancelled` / `stale`) never changes status again, and nothing moves back to
+  `queued`. Everything else is unchanged, including the case worth naming: a
+  **same-status patch stays legal on a settled row** and still emits `job:output`.
+  Terminal means the status stops moving, not that the row freezes.
+  
+  No runtime path changes — every write `@orchestral/runtime` makes was already
+  legal under this table. `JobStore.update`'s doc comment now states this as a
+  conformance requirement, in the same form `insertIfAbsent`'s atomicity
+  requirement is stated: **if you maintain a durable store, call `nextJobState`
+  from your write paths instead of re-deriving the table.**
+  
+  ## Also moved, with no change in behaviour
+  
+  `sumCosts` now lives in `@orchestral/core` beside `metaEnvelopeShape.cost`, whose
+  null rule it implements (`@orchestral/patterns` re-exports it, so nothing to do).
+  `applicableAlternatives`, `pickAlternative`, `toAvailableAlternative`,
+  `readRequiresSemantics` and `AlternativeSelectionDeps` — the registry + router
+  pair all four read, which `@orchestral/runtime`'s `RunAlternativeDeps` now
+  extends rather than rpenss — are core's, because deciding whether a declared
+  path applies is a read of the registry and the router, while taking one is
+  runtime policy — the runtime's `ALTERNATIVES_NOT_ENABLED` diagnostic and a plan's
+  preflight now report from the same evaluation instead of two copies of it.
+  `ResolveCtxProvider` is core's for the same reason: preflight and
+  `InlineRuntimeInit` take the same provider, so it is a contract rather than one
+  substrate's detail. `@orchestral/runtime` still re-exports it and
+  `AvailableAlternative`, so those two imports are unaffected.
+
+### Patch Changes
+
+- Updated dependencies [ab00fc3]
+- Updated dependencies [ab00fc3]
+  - @orchestral/core@0.3.0
+  - @orchestral/patterns@0.3.0
+
+## 0.2.0
+
+### Patch Changes
+
+- Updated dependencies [b30b58b]
+  - @orchestral/patterns@0.2.0
+  - @orchestral/runtime@0.2.0
+  - @orchestral/core@0.2.0
+
+## [0.1.0] - 2026-08-25 — Initial public release
+
+First public release. `@orchestral/agent` is the optional agent extension: one
+first-party `AgentPattern` declaration, and nothing else. Agent support is not
+part of the core surface — nothing in `@orchestral/core`, `@orchestral/runtime`
+or `@orchestral/patterns` depends on this package, so a host that never runs an
+LLM loop never installs it.
+
+### Added
+
+- **One first-party `AgentPattern`.** `agent_orchestrator` —
+  `createOrchestratorAgent`, the general open-ended media orchestrator. No
+  embedded SKILL and no domain workflow: it plans a multi-step media task as it
+  goes, over the 19 patterns in `@orchestral/patterns`. It declares three
+  per-modality `references` asset slots (`images`, `videos`, `audios`), which
+  are the only way a caller hands it assets — it deliberately does not inherit
+  the parent's, so a subagent sees exactly what it was given.
+
+  It is a pure declaration — id, zod input schema, prompt, tool list — and
+  composes the atomic + meta catalog in `@orchestral/patterns` by pattern id.
+  It takes its input through core's `agentInputSchema()` and declares neither
+  `outputs` nor `finish`, so the registry backfills core's default finish
+  envelope (`{ assets, summary, stepCount }`) and the runtime's finish broker
+  injects `complete_task`.
+
+  Exports: `createOrchestratorAgent` / `AGENT_ORCHESTRATOR_PATTERN_ID` /
+  `OrchestratorInputSchema` / `OrchestratorInput`.
+
+- **The long-form video director is a reference host, not a published
+  pattern.** `agent_long-form-video` — the novel → multi-event director whose
+  tool catalog was the narrative chain (`meta_prose-chunking`,
+  `meta_novel-to-events`, `meta_event-to-script`, then `meta_script2video` and
+  `meta_image-best-of-n`) — lives in `examples/long-form-video` together with
+  those metas, registered next to the shipped catalog and covered by the same
+  tests it had here. It was one pipeline with one consumer, and every inlined
+  prompt on a published surface is a maintenance liability and a PR magnet;
+  the example keeps it runnable without making it API. Nothing left in this
+  package derives from third-party prompt text — the ViMax-derived
+  character-merge prompt moved with the director and is credited in the
+  example's own `CREDITS.md`.
+
+- **`"orchestral"` manifest + `orchestral-pattern` keyword.** The package
+  declares its agent pattern as `{ id, kind, export }` for
+  `registry.addFromManifest(pkg.orchestral, agent)`. No `requiredOps` — the
+  agent takes no host operations, so the call needs no ops argument and skips
+  nothing.
+
+### What this package deliberately does not ship
+
+- **No tool-loop runner, no agent framework, no provider SDK.** The
+  `AgentRunImpl` that drives the LLM tool loop is injected by the host. This is
+  the same iron rule as `ModelCapability.call`: the library declares the seam,
+  the host fills it. Shipping a loop would mean this package picking an agent
+  framework on the host's behalf and dragging its SDK into every install,
+  including installs that only want the declarative pattern. A
+  copy-pasteable reference implementation over the Vercel AI SDK's
+  `ToolLoopAgent` lives in `examples/agent-hello-world/src/agent-runner.ts`
+  (~150 lines, with `resolveModel` / `stopWhen` left injected, exercised offline
+  against a mock LLM by the example's smoke test) — documentation you copy, not
+  a dependency you inherit.
+
+- **The agent machinery itself.** `@orchestral/core` owns `AgentPattern` /
+  `agentInputSchema` / the finish envelope, and `@orchestral/runtime` owns
+  `dispatchAgent` and the `AgentRunImpl` interface — dormant until a host
+  injects a runner. This package supplies Patterns for that machinery to run;
+  the host supplies the runner.
+
+### Peer dependencies
+
+- `zod` (`>=4.3 <5`) is a **peer** dependency, for the same reason it is one in
+  `@orchestral/patterns`: the schemas here are on the public API, so they must
+  be the host's zod instance. Whatever SDK a host's runner uses is the host's
+  own install, at the host's chosen version.
+
+### Known limitations
+
+- **The agent does not bound its own spend.** An `AgentPattern` has no
+  `ctx.askUser` and no cost gate, and this one declares no `stopWhen` — the
+  step-count cap belongs to whoever runs the agent. Cost is not in the finish
+  envelope either: the runtime fills `stepCount`, and no per-run accounting
+  exists to report. Size the cap against the task rather than a chat turn, and
+  enforce any real budget ceiling in the `ModelCapability` your host registers.
+
+- **`@alpha`.** The agent seam is still evolving; `createOrchestratorAgent` is
+  marked `@alpha`, and a 0.1 → 0.2 reshape of these exports is not a breaking
+  change under the 0.x policy above.
+
+---
+
+All notable changes to `@orchestral/agent` are documented here. The format is
+based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this
+project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+> **0.x note:** while the API is pre-1.0, minor releases may contain breaking
+> changes. Pin `"~0.1"` for patch-only updates. Breaking changes are listed under
+> `### Breaking (0.x)`.

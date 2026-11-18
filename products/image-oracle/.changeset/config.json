@@ -1,0 +1,22 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@4.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "@orchestral/core",
+      "@orchestral/discovery",
+      "@orchestral/runtime",
+      "@orchestral/patterns",
+      "@orchestral/plan",
+      "@orchestral/agent",
+      "@orchestral/adapters-ai-sdk"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["@orchestral/dsh-plugin"],
+  "privatePackages": { "version": false, "tag": false }
+}

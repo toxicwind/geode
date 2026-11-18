@@ -1,0 +1,295 @@
+# Orchestral
+
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+
+**A TypeScript orchestration layer for media generation — text-to-image,
+image-to-video, text-to-speech, speech recognition — built for local-first, BYOK
+apps: capability routing, opt-in semantic fallback, and an asset-handle
+protocol.**
+
+You describe what a step needs (`text-to-image`, `image-to-video`,
+`automatic-speech-recognition`, …), not which model to call. Orchestral routes
+that capability to a model you supplied, retries inside the router, knows the
+*semantically equivalent* paths a capability without a model could degrade
+through (reporting them on failure by default; redirecting automatically is
+opt-in), and passes generated media between steps as opaque handles the host
+resolves. It ships **no provider SDK and no API keys** — calling a model is a
+~15-line adapter you write, over whichever SDK you already use. Everything runs
+in your process; there is no hosted control plane.
+
+## How it relates to the AI SDK / LangChain
+
+Different layers, and Orchestral expects you to keep using the others:
+
+- **A provider SDK** (the Vercel AI SDK, an official vendor SDK) owns *one model
+  call* — auth, request shape, streaming, transport retries. Your Orchestral
+  `call` adapter is usually a dozen lines over one of these; the examples here
+  use the AI SDK's `generateImage`.
+- **An agent framework** (LangChain / LangGraph, the AI SDK's own tool loop)
+  owns the *generic tool loop* — planning, memory, a graph of steps. Orchestral's
+  agent patterns delegate the loop to whichever one you inject.
+- **Orchestral** owns what neither covers for media: routing a *capability*
+  rather than a model id, declaring semantically equivalent fallback paths for
+  when no model serves that capability, and threading generated assets between
+  steps as handles instead of raw ids.
+
+## Quickstart
+
+```sh
+npm install @orchestral/core @orchestral/runtime @orchestral/patterns zod
+```
+
+Three optional packages sit on top: `@orchestral/plan` (a pipeline authored as
+data — the schema, the validation, the interpreter and the preflight; you get it
+transitively with the catalog, and install it directly to build or preflight a
+plan yourself), `@orchestral/discovery` (the BM25 search behind a `find_pattern`
+tool — the runtime asks a host for retrieval rather than depending on one, so
+install this to give an agent loop a `find_pattern` tool) and
+`@orchestral/agent` (the orchestrator agent pattern).
+None of them pulls in a provider SDK. A fourth, `@orchestral/adapters-ai-sdk`, is the
+one package that does: it wraps a Vercel AI SDK model instance as a ready-made
+`ModelCapability`, so a host already on the AI SDK skips writing the call
+adapter. It is a leaf — nothing in `@orchestral/*` depends on it.
+
+`zod` v4 (`>=4.3 <5`) is a peer dependency: pattern input/output schemas are zod
+schemas on the public API, so your app and Orchestral must share one zod
+instance.
+
+Six runnable hosts live in this repo:
+
+- [`examples/atomic-hello-world`](examples/atomic-hello-world) — one atomic
+  `text-to-image` dispatch, with the whole provider bridge in `src/ai-sdk-wiring.ts`.
+- [`examples/agent-hello-world`](examples/agent-hello-world) — an agent-kind
+  dispatch: an LLM tool-loop that picks and runs patterns.
+- [`examples/consented-fallback`](examples/consented-fallback) — a catalog with
+  no `image-to-image` model: the router explains the miss, the runtime refuses
+  and names the declared fallback with what it would lose, a meta asks the
+  user before taking it, and `alternatives: 'auto'` takes it on request. Runs
+  offline on mock models.
+- [`examples/incremental-rerun`](examples/incremental-rerun) — a three-step
+  meta re-submitted with one input changed: the unchanged steps come back from
+  the `JobStore` under their original child job ids, only the changed step and
+  its downstream re-run. Mock models, no key.
+- [`examples/plan-short-clip`](examples/plan-short-clip) — the same three-step
+  pipeline written as JSON instead of as a `compose()`, loaded by `planToMeta`
+  as an ordinary meta. Re-submit with a step *inserted* and the untouched steps
+  still come back from the `JobStore`: a plan keys its rows by step name, not
+  by position. Mock models, no key.
+- [`examples/long-form-video`](examples/long-form-video) — the reference
+  novel → multi-event video pipeline (five planning metas and a director
+  agent), kept as source in the example rather than shipped as API, registered
+  next to the full catalog. Its README states the cost profile and the
+  `concat_videos` host tool it expects. No key: the tests run on mocks.
+
+```sh
+pnpm install
+pnpm --filter atomic-hello-world start   # needs OPENAI_API_KEY
+pnpm --filter atomic-hello-world test    # no key: same wiring, mock model
+pnpm --filter consented-fallback start   # no key: the fallback narrative on mocks
+pnpm --filter incremental-rerun start    # no key: content-addressed re-run, mock models
+pnpm --filter plan-short-clip start      # no key: the same pipeline as data, re-run after an edit
+pnpm --filter long-form-video start      # no key: registers the long-form catalog and prints it
+```
+
+## Minimal example
+
+Registry, model bridge, router, runtime, one dispatch — the whole surface:
+
+```ts
+import {
+  PatternRegistry,
+  type DispatchContext,
+  type DispatchResult,
+  type ModelCapability,
+} from '@orchestral/core'
+import { InMemoryJobStore } from '@orchestral/core/memory'
+import { createDefaultCapabilityRouter } from '@orchestral/core/routing'
+import { InlineRuntime } from '@orchestral/runtime'
+import { createTextToImagePattern } from '@orchestral/patterns'
+import { generateImage } from 'ai'
+import { openai } from '@ai-sdk/openai'
+
+const registry = new PatternRegistry()
+registry.register(createTextToImagePattern())
+
+// The seam you write: your provider SDK behind a ModelCapability envelope.
+const model: ModelCapability = {
+  capabilities: ['text-to-image'],
+  provider: 'openai',
+  modelId: 'gpt-image-1',
+  inputs: ['text'],
+  outputs: ['image'],
+  tags: [],
+  source: 'user',
+  async call<I, O>(input: I, ctx: DispatchContext): Promise<DispatchResult<O>> {
+    const startedAt = Date.now()
+    const { images } = await generateImage({
+      model: openai.image('gpt-image-1'),
+      prompt: (input as { prompt: string }).prompt,
+      abortSignal: ctx.signal,
+    })
+    const assets = images.map((img, i) => ({
+      assetId: `img-${i}`,
+      modality: 'image' as const,
+      url: `data:${img.mediaType ?? 'image/png'};base64,${img.base64}`,
+    }))
+    const output = {
+      modality: 'image' as const,
+      assets,
+      // the AI SDK does not report image cost; null = unknown, never 0
+      cost: null,
+      latencyMs: Date.now() - startedAt,
+      model: 'openai:gpt-image-1',
+      provider: 'openai',
+    }
+    return { output: output as O }
+  },
+}
+
+const runtime = new InlineRuntime({
+  store: new InMemoryJobStore(),
+  registry,
+  router: createDefaultCapabilityRouter({
+    getModels: (cap) => (cap === 'text-to-image' ? [model] : []),
+  }),
+})
+
+const job = await runtime.submitJob({
+  patternId: 'text-to-image',
+  input: { prompt: 'a watercolour fox in a misty forest' },
+})
+console.log(job.status, job.output) // 'done'  { modality: 'image', assets: [...] }
+```
+
+Or, for the AI SDK, skip the hand-written adapter:
+`fromImageModel(openai.image('gpt-image-1'))` from
+[`@orchestral/adapters-ai-sdk`](packages/orchestral-adapters-ai-sdk) returns the
+same envelope.
+
+The annotated version of the same wiring is in
+[`packages/orchestral-core/README.md`](packages/orchestral-core/README.md#minimal-example).
+
+## What's in the box
+
+`@orchestral/patterns` ships **19 patterns**: 10 atomic ones (one per capability
+— `text-to-image`, `image-to-video`, `text-to-speech`,
+`automatic-speech-recognition`, …) and 9 meta pipelines with their prompts
+inlined (best-of-N image selection, storyboarding, script-to-video, a product
+ad, a UGC testimonial, an explainer short, a product photo pack, the
+caption → re-render image-edit fallback, and `meta_plan` — the one-shot that
+runs an LLM-authored step list as one job). The agent pattern (an orchestrator)
+lives in the optional `@orchestral/agent` package. The long-form novel → video
+pipeline is in neither: it is kept runnable in
+[`examples/long-form-video`](examples/long-form-video).
+
+The full table — kind, input slots, outputs, and the host operations each
+pattern expects you to supply — is generated from the built package:
+**[pattern catalog](packages/orchestral-patterns/README.md#catalog)**.
+
+## The three seams
+
+A host adopts Orchestral by satisfying three injection points. Two are
+implementations you swap; the third is the call adapter:
+
+| Seam | What it decides | What ships |
+| --- | --- | --- |
+| `JobStore` | where job rows live | `InMemoryJobStore` (from `@orchestral/core/memory`) for dev/test; bring a durable one (e.g. SQLite-backed) for production |
+| `CapabilityRouter` | which model answers a capability | `createDefaultCapabilityRouter` (from `@orchestral/core/routing`); you inject `getModels` and an optional enablement gate |
+| `ModelCapability.call` | the actual provider invocation | nothing — this is the ~15-line adapter you write over your own SDK (or, for the Vercel AI SDK, the one `@orchestral/adapters-ai-sdk` ships) |
+
+Agent patterns add a fourth seam, `AgentRunImpl`, which drives the inner LLM
+tool-loop. It is `@alpha`, and it ships nothing for the same reason
+`ModelCapability.call` does not: picking an agent framework is the host's call.
+`examples/agent-hello-world` wires one over the AI SDK's tool loop in ~150
+lines — copy it and swap in whatever loop you already run.
+
+## Packages
+
+| Package | What it is |
+| --- | --- |
+| [`@orchestral/core`](packages/orchestral-core) | The vocabulary and contracts: `Pattern` / `ModelCapability` / `Alternative`, `Job` / `JobStore` / `Runtime`, and the pattern registry. No execution engine, no provider SDK. The batteries sit one level down, on their own entries: `@orchestral/core/memory` (the three `InMemory*` stores) and `@orchestral/core/routing` (the default capability router). |
+| [`@orchestral/patterns`](packages/orchestral-patterns) | The first-party pattern catalog: one atomic pattern per capability, plus meta pipelines (storyboarding, script-to-video, best-of-N selection, the short-form deliverables, …) with their prompts inlined. |
+| [`@orchestral/runtime`](packages/orchestral-runtime) | `InlineRuntime`, the in-process reference implementation of core's `Runtime`: submits jobs, dispatches through the router, handles retries, opt-in cross-pattern fallback and idempotency. No durable queue — the host owns each job's lifetime. |
+| [`@orchestral/plan`](packages/orchestral-plan) | A pipeline authored as data: the wire schema a model fills, `validatePlan` (every problem in a DAG before any of it spends), `planToMeta` (the DAG executed as an ordinary meta) and `preflightPlan` (every step routed, nothing run). Depends on core and nothing else. |
+| [`@orchestral/discovery`](packages/orchestral-discovery) | Optional. The LLM discovery layer: the BM25 `PatternSearchIndex`, the `find_pattern` tool handler, and `createPatternSearch` — the ready-made implementation of core's `PatternSearch` seam that `@orchestral/runtime` takes as `patternSearch`. Core keeps the input contract; this package owns the searching, and nothing depends on it. |
+| [`@orchestral/agent`](packages/orchestral-agent) | Optional. The orchestrator agent pattern. A declaration only — the tool loop that runs it is the `AgentRunImpl` you inject. |
+| [`@orchestral/adapters-ai-sdk`](packages/orchestral-adapters-ai-sdk) | Optional. Ready-made `ModelCapability` envelopes over a Vercel AI SDK model instance — `fromLanguageModel` / `fromVisionModel` / `fromImageModel` / `fromSpeechModel` / `fromTranscriptionModel`, covering `text-generation`, `image-to-text`, `text-to-image`, `text-to-speech` and `automatic-speech-recognition` — for hosts already on the AI SDK. A leaf package: it depends on core and `ai`, and nothing depends on it. |
+| [`@orchestral/dsh-plugin`](packages/orchestral-dsh-plugin) | Experimental. A [deepseek-harness](https://github.com/deepseek-ai/deepseek-harness) plugin exposing registered patterns as dsh agent tools. A leaf package on its own version line — dsh is a dev preview, so breakage stops at the bridge. |
+
+All packages are Apache-2.0. The `@orchestral/*` packages are released together
+on one version line; `@orchestral/dsh-plugin` versions independently.
+
+## Honest limitations
+
+This is 0.x. Each package README states its own edges rather than hiding them:
+
+- **Agent resume is lossy.** The transcript stores a step projection, not raw
+  provider messages: `tool_use` pairing and reasoning blocks are gone on resume —
+  [runtime § Resume fidelity](packages/orchestral-runtime/README.md#resume-fidelity).
+- **No durable queue.** `InlineRuntime` runs a job in the caller's tick, and
+  `abandonOrphanedJobs()` marks jobs a dead process left behind as `stale`;
+  `ctx.askUser` parks in memory only —
+  [runtime § Runtime semantics worth knowing](packages/orchestral-runtime/README.md#runtime-semantics-worth-knowing).
+- **Deliverable metas need a multimedia backend you supply.** Six
+  `MetaCommonDeps` operations (ffmpeg-shaped: concat, subtitles, background
+  audio, …) are specified but not implemented here —
+  [patterns § Deliverable metas](packages/orchestral-patterns/README.md#deliverable-metas).
+- **One shipped fallback, and taking it is opt-in.** `image-to-image` → caption
+  → re-render is the only `Alternative` in the first-party catalog, and
+  `InlineRuntime` defaults to failing with the applicable paths listed rather
+  than redirecting through them (`alternatives: 'auto'` turns redirects on) —
+  [runtime § Alternative fallback is opt-in](packages/orchestral-runtime/README.md#alternative-fallback-is-opt-in),
+  [core § Semantic fallback](packages/orchestral-core/README.md#semantic-fallback-alternative).
+
+For the reasoning behind what the library deliberately leaves out, see [DESIGN.md](DESIGN.md).
+
+## Versioning
+
+`0.x`: minor versions may contain breaking changes, patch versions never do.
+The `@orchestral/*` packages share one version line and are published together —
+pin the exact set you tested against. `@orchestral/dsh-plugin` versions
+independently against its dev-preview host. The `1.0` line will follow semver
+strictly.
+
+## Repository layout
+
+```
+packages/orchestral-core/        @orchestral/core
+packages/orchestral-discovery/   @orchestral/discovery
+packages/orchestral-patterns/    @orchestral/patterns
+packages/orchestral-runtime/     @orchestral/runtime
+packages/orchestral-plan/        @orchestral/plan
+packages/orchestral-agent/       @orchestral/agent
+packages/orchestral-adapters-ai-sdk/  @orchestral/adapters-ai-sdk (leaf: AI SDK model → ModelCapability)
+packages/orchestral-dsh-plugin/  @orchestral/dsh-plugin (independent version line)
+examples/                        runnable hosts, ~50 lines each
+scripts/smoke-dist.mjs           executes the built dist bundles end to end
+```
+
+## Development
+
+```sh
+pnpm install
+pnpm build        # tsdown bundle + tsc declarations + api-extractor rollup
+pnpm test         # vitest, all packages and examples
+pnpm typecheck
+pnpm api:check    # public .d.ts surface vs the committed etc/*.api.md report
+pnpm smoke:dist   # build, then run the published dist bundles end to end
+pnpm docs:catalog # regenerate the pattern catalog table from the built dist
+```
+
+`pnpm api:check` failing means the public API changed. Review the diff, run
+`pnpm api:update`, and commit the updated report alongside the change.
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+`@orchestral/patterns` contains prompt text derived from a third-party MIT
+project; the affected constants and the upstream license text are listed in
+[`packages/orchestral-patterns/CREDITS.md`](packages/orchestral-patterns/CREDITS.md).
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). For vulnerabilities, please use the
+private channel in [SECURITY.md](SECURITY.md) rather than a public issue.

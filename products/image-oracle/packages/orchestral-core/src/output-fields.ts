@@ -1,0 +1,177 @@
+// Bounded output-field vocabulary for Pattern / host-tool outputs schemas.
+//
+// Companion to sanitize.ts: that module guesses binary from content shape at
+// the boundary; this one makes the guess unnecessary at the source. When every
+// string field in an outputs schema carries an explicit upper bound, an
+// unbounded blob is unrepresentable — a Pattern cannot accidentally push
+// megabytes of base64 into the model's context. Authors pick the bound that
+// names their intent; auditOutputsSchema flags any bare z.string() that
+// slipped through at registration, and the runtime holds every atomic and
+// meta output to its schema at the dispatch exit (OUTPUT_SCHEMA_MISMATCH), so
+// the bound is enforced on what an adapter returns, not only declared.
+// DESIGN: bounded-output-vocabulary
+
+import { z, type ZodType } from 'zod'
+
+import type { AssetKind } from './asset-index.types'
+import { combinatorBranches, isPlainObject, toJsonSchema } from './schema'
+
+/** Prose / label fields. Pick the smallest honest max. */
+export function boundedText(max: number) {
+  return z.string().max(max)
+}
+
+/**
+ * Opaque pagination cursors / provider tokens. Generous but bounded.
+ * Default 16_384 = 2^14, ~3× a saturated refkit cursor (~5KB), the largest
+ * legit opaque token we've seen.
+ */
+export function opaqueToken(max = 16_384) {
+  return z.string().max(max)
+}
+
+/** Asset ids / context handles. */
+export function assetIdField() {
+  return z.string().max(128)
+}
+
+/** Canonical / thumbnail URLs (any scheme). */
+export function urlField(max = 2_048) {
+  return z.string().max(max)
+}
+
+/**
+ * Every {@link AssetKind}, as a value — the runtime twin of a type that
+ * otherwise exists only at compile time.
+ *
+ * It is here rather than beside the type because `asset-index.types.ts` is
+ * declared "pure types, zero runtime, zero SDK" and a zod enum is both. The
+ * two are held together by the assertion below instead of by proximity.
+ */
+export const ASSET_KINDS = [
+  'image',
+  'audio',
+  'video',
+  'document',
+  'data',
+  'archive',
+  'other',
+] as const
+
+/**
+ * Both directions of "these are the same set", as a compile error rather than a
+ * comment asking someone to remember. A kind added to {@link AssetKind} and not
+ * to `ASSET_KINDS` fails the first line; a string in `ASSET_KINDS` that is not
+ * an `AssetKind` fails the second.
+ *
+ * The reason to spend two type aliases on this: the enum below is what an
+ * outputs schema states about a produced asset, and the type is what every
+ * resolution path carries. When they disagreed, a Pattern could declare an
+ * output the library's own type vocabulary accepted and its own schema
+ * rejected, and the disagreement only surfaced at the dispatch exit — after
+ * the work was paid for.
+ */
+type _EveryKindListed = Exclude<AssetKind, (typeof ASSET_KINDS)[number]> extends never
+  ? true
+  : never
+type _NoExtraKindsListed = Exclude<(typeof ASSET_KINDS)[number], AssetKind> extends never
+  ? true
+  : never
+const _assetKindsExhaustive: [_EveryKindListed, _NoExtraKindsListed] = [true, true]
+void _assetKindsExhaustive
+
+/**
+ * The `modality` of a produced or referenced asset, as a schema.
+ *
+ * Note this is {@link AssetKind} — which classifies a file — and not the
+ * model-facing `Modality`, which describes a model's I/O. They overlap on
+ * image/audio/video and answer different questions; see asset-index.types.ts.
+ */
+export function assetKindField() {
+  return z.enum(ASSET_KINDS)
+}
+
+export interface OutputsSchemaAudit {
+  /** Dotted paths of string fields that carry no `maxLength`. */
+  unbounded: string[]
+  /**
+   * Dotted paths the walk could not inspect — an unresolved `$ref`, or an
+   * object that permits arbitrary additional properties. A string of any
+   * length can hide behind these, so `unbounded: []` is only a proof of
+   * boundedness when this list is empty too.
+   */
+  notTraversed: string[]
+}
+
+/**
+ * Audit an outputs schema for unbounded strings. Runs off the public
+ * `toJsonSchema` projection rather than zod internals, so it stays stable
+ * across zod minor versions.
+ *
+ * The walk covers object properties, array items, tuple `prefixItems`, record
+ * values (`additionalProperties`), and `anyOf` / `oneOf` / `allOf` branches.
+ * Anything it cannot follow is reported in `notTraversed` instead of being
+ * silently counted as clean.
+ * DESIGN: audit-outputs-schema
+ */
+export function auditOutputsSchema(schema: ZodType): OutputsSchemaAudit {
+  const audit: OutputsSchemaAudit = { unbounded: [], notTraversed: [] }
+  visit(toJsonSchema(schema) as Record<string, unknown>, '', audit)
+  return audit
+}
+
+function visit(
+  node: Record<string, unknown>,
+  path: string,
+  audit: OutputsSchemaAudit,
+): void {
+  if ('$ref' in node) {
+    audit.notTraversed.push(path)
+    return
+  }
+  // An empty schema (z.unknown() / z.any() serialise to `{}`) accepts a string
+  // of any length — same blind spot as an empty `additionalProperties` below,
+  // so it lands in the same bucket instead of silently passing the audit.
+  if (Object.keys(node).length === 0) {
+    audit.notTraversed.push(path || '(root)')
+    return
+  }
+  const bad = audit.unbounded
+  // Finite value sets (z.enum / z.literal) serialize as string nodes without
+  // maxLength, but they can't hold a blob and callers can't .max() them
+  // (not ZodString) — skip, don't flag.
+  if (
+    node.type === 'string' &&
+    typeof node.maxLength !== 'number' &&
+    !('const' in node) &&
+    !('enum' in node)
+  ) {
+    bad.push(path)
+    return
+  }
+  if (node.type === 'object') {
+    for (const [k, v] of Object.entries(
+      (node.properties as Record<string, Record<string, unknown>>) ?? {},
+    )) {
+      visit(v, path ? `${path}.${k}` : k, audit)
+    }
+    // z.record → additionalProperties holds the value schema. A loose/
+    // passthrough object serialises it as `true` or `{}` — an empty schema
+    // accepts a string of any length, which is exactly the blind spot.
+    const extra = node.additionalProperties
+    if (extra === true || (isPlainObject(extra) && Object.keys(extra).length === 0)) {
+      audit.notTraversed.push(`${path}{*}`)
+    } else if (isPlainObject(extra)) {
+      visit(extra, `${path}{*}`, audit)
+    }
+  }
+  if (node.type === 'array') {
+    if (node.items) visit(node.items as Record<string, unknown>, `${path}[]`, audit)
+    // z.tuple → prefixItems, one schema per position.
+    const prefix = node.prefixItems as Record<string, unknown>[] | undefined
+    if (prefix) {
+      prefix.forEach((v, i) => visit(v, `${path}[${i}]`, audit))
+    }
+  }
+  for (const branch of combinatorBranches(node)) visit(branch, path, audit)
+}

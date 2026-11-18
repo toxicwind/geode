@@ -1,0 +1,203 @@
+# Releases ride changesets; this workflow is the whole release automation.
+#
+# The shape: every push to main lands here. If there are pending changesets,
+# changesets/action opens (or refreshes) a "Version Packages" PR — versions
+# bumped across the fixed seven-package line, CHANGELOG sections prepended.
+# Nothing publishes on that path. When that PR merges, main has no pending
+# changesets, so the action runs `ci:publish` instead: the FULL verification
+# wall (build, catalog drift, typecheck, tests, lint, api:check, smoke-dist —
+# the same wall ci.yml runs, re-run here on purpose so a publish can never
+# race a red main), then `pnpm -r publish`, which resolves workspace: ranges,
+# publishes in topological order, and skips any version already on the
+# registry — a rerun after a partial failure publishes only what is missing.
+#
+# Two consequences of that shape, accepted deliberately:
+#   - The gate re-runs on every push to main even when there is nothing to
+#     publish. Wasted minutes, bought safety.
+#   - The Version Packages PR is pushed with GITHUB_TOKEN, and GitHub does
+#     not trigger workflows for GITHUB_TOKEN pushes — so that PR shows no CI
+#     checks. The publish gate re-verifying everything is the defence; a
+#     RELEASE_PAT in `github-token` is the upgrade if PR checks are wanted.
+#
+# Deliberate exclusions:
+#   - @orchestral/dsh-plugin never publishes from here (the --filter in
+#     ci:publish, plus changesets `ignore`): it versions against its
+#     dev-preview host and goes out by hand, PUBLISH.md §7.
+#   - Examples are private and skipped by pnpm publish on their own.
+#   - `create-github-releases: false`: the action detects releases by parsing
+#     its own `changeset publish` output, which `pnpm -r publish` does not
+#     emit. The releases are not given up with it — the last three steps
+#     below find the released version on the registry, cut the tag, and
+#     publish notes built from the published packages' CHANGELOGs, all of
+#     which are true after a publish whatever the publisher printed.
+#
+# Auth: npm trusted publishing (OIDC). Each published package names this
+# repo + this workflow file as its trusted publisher (configured via
+# `npm trust github`, PUBLISH.md records the command); `id-token: write`
+# below lets the npm CLI mint the short-lived credential per publish, and
+# provenance attestation comes with it. Two facts this workflow has to
+# respect, both learned from the first real OIDC publish (E404 on the PUT):
+#   - The PUT is executed by the npm CLI that `pnpm -r publish` delegates
+#     to, and trusted publishing needs npm >= 11.5.1 — Node 22 bundles npm
+#     10.x, so a current npm 11 is installed explicitly below. The range
+#     floats minors (OIDC fixes keep landing) and stops at the major: a new
+#     npm major enters this pipeline by a reviewed bump, never by surprise.
+#     The fix lives in npm rather than a pnpm bump because pnpm 11's native
+#     publish has an open OIDC regression (pnpm/pnpm#11513).
+#   - setup-node's `registry-url` writes an `_authToken=${NODE_AUTH_TOKEN}`
+#     line into .npmrc and exports a placeholder token when none is given,
+#     which poisons the OIDC path (actions/setup-node#1551) — so it is
+#     deliberately absent.
+# No long-lived token is involved — the NPM_TOKEN repository secret is
+# unused and kept only as a rollback (re-add
+# `NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}` to the changesets step's env
+# and restore `registry-url` on setup-node if OIDC ever has to be backed
+# out).
+#
+# Node 22 is the release floor on purpose: it is what ci.yml tests, and a
+# publish artifact should never be built by an older toolchain than CI runs.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency: release-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+  # Trusted publishing: npm exchanges the workflow's OIDC token for the
+  # publish credential; without this the publish falls back to (absent)
+  # token auth and the registry refuses the PUT.
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # pnpm version comes from the root package.json `packageManager` field.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      # Node 22 bundles npm 10.x; trusted publishing needs npm >= 11.5.1
+      # (the Auth note above argues the range).
+      - run: npm install -g npm@^11.5.1
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Create the Version Packages PR, or publish
+        uses: changesets/action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version-script: pnpm ci:version
+          publish-script: pnpm ci:publish
+          commit-message: 'release: version packages'
+          pr-title: 'release: version packages'
+          create-github-releases: false
+
+      # Whether the version main carries is on the registry. The tag and the
+      # release below both key on this one answer, so it is asked once, here.
+      # Self-computed against the REGISTRY rather than read off the action's
+      # `published` output: that output is derived from the publish script's
+      # stdout, which `pnpm -r publish` does not format the way the action
+      # parses, and the registry is the ground truth anyway.
+      #
+      # The registry is read-after-write eventually, not immediately. At 0.5.0
+      # the publish PUT for core returned at 16:19:02 and `npm view` still
+      # answered "not found" at 16:20:06, so the run that published the line
+      # cut no tag and no release — and nothing would have until the next push
+      # to main happened to come along. So when the tag is absent, which is the
+      # only time a publish can just have happened, this polls for up to five
+      # minutes before concluding the version is not there. `--prefer-online`
+      # is load-bearing: without it npm answers every later attempt from the
+      # packument it cached on the first miss, and the loop never sees the
+      # version arrive.
+      #
+      # Costs, accepted: an ordinary push (tag present) asks the registry once
+      # and waits for nothing. A push after a FAILED publish (tag absent,
+      # version absent) waits the full five minutes, once per push, and says
+      # so — a slow registry and a failed publish look the same from here, and
+      # five minutes is what it costs to tell them apart.
+      - name: Find the released line on the registry
+        id: released
+        run: |
+          V=$(node -p "require('./packages/orchestral-core/package.json').version")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if git rev-parse "v$V" >/dev/null 2>&1; then
+            # Released on an earlier push; one plain look, no waiting.
+            if npm view "@orchestral/core@$V" version >/dev/null 2>&1; then
+              echo "published=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "tag v$V exists but @orchestral/core@$V is not on the registry"
+              echo "published=false" >> "$GITHUB_OUTPUT"
+            fi
+            exit 0
+          fi
+          for attempt in $(seq 1 30); do
+            if npm view --prefer-online "@orchestral/core@$V" version >/dev/null 2>&1; then
+              echo "@orchestral/core@$V is on the registry (attempt $attempt)"
+              echo "published=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "@orchestral/core@$V is not on the registry after five minutes — nothing to tag or announce"
+          echo "published=false" >> "$GITHUB_OUTPUT"
+
+      # One human-readable tag per release of the line (v0.1.0 set the
+      # convention), cut from core's version — the seven move together, so any
+      # of them names the line. Idempotent: an ordinary push finds the tag
+      # already present; a failed publish is skipped by the step above; only
+      # the push where the publish actually landed cuts a tag.
+      - name: Tag the released line
+        if: steps.released.outputs.published == 'true'
+        run: |
+          V="${{ steps.released.outputs.version }}"
+          if git rev-parse "v$V" >/dev/null 2>&1; then
+            echo "tag v$V already exists"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$V" -m "$V — the @orchestral seven-package line"
+          git push origin "v$V"
+
+      # The release page for that tag. Its body is the distinct changeset
+      # summaries for the version across every published package's CHANGELOG
+      # — not core's section alone, which is a bare heading at 0.2.0 because
+      # that changeset never named core, and not the seven concatenated,
+      # which would print 0.3.0's summaries seven times over. PUBLISH.md §5
+      # set the convention by hand at 0.1.0 ("one tag and one GitHub Release
+      # per version line"), and this is the automated flow finally keeping it.
+      #
+      # Keyed on whether the RELEASE exists, not on whether this run cut the
+      # tag. Those are different questions, and only this one survives the
+      # state that actually occurred: four tags standing with no release behind
+      # any of them. Keyed the other way, a version whose tag was already cut
+      # could never be announced.
+      #
+      # `--verify-tag` so a release is never cut against a tag that failed to
+      # push, and a version no published CHANGELOG has a summary for fails the
+      # step loudly rather than publishing an empty release — see
+      # scripts/release-notes.mjs, which argues that and the dedup above.
+      - name: Announce the released line
+        if: steps.released.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          V="${{ steps.released.outputs.version }}"
+          if gh release view "v$V" >/dev/null 2>&1; then
+            echo "release v$V already exists"
+            exit 0
+          fi
+          node scripts/release-notes.mjs "$V" > "$RUNNER_TEMP/notes.md"
+          gh release create "v$V" --verify-tag --title "v$V" --notes-file "$RUNNER_TEMP/notes.md"

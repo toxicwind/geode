@@ -1,0 +1,17 @@
+[
+  {
+    "from": "rhodochrosite",
+    "to": "mimetite",
+    "file": ".lapidary-undo.jsonl"
+  },
+  {
+    "from": "rhodochrosite",
+    "to": "mimetite",
+    "file": "internal/config/config.go"
+  },
+  {
+    "from": "rhodochrosite",
+    "to": "mimetite",
+    "file": "router/src/server.ts"
+  }
+]

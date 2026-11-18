@@ -4,6 +4,10 @@
 # control plane: the pen is the inference plane (catalog, routers, engines).
 # Migrated from pens/pitchfork.toml 2026-10-26 during the geode rename.
 
+# ============================================================================
+# MESH GROUP — Core inference plane (chalcopyrite + mimetite + bornite)
+# ============================================================================
+
 [daemons.chalcopyrite]
 run = "exec ./chalcopyrite-serve.sh"
 auto = ["start"]
@@ -69,18 +73,56 @@ UNIFIED_ROUTER_PORT = "25193"
 DATA_DIR = "/home/toxic/.mimetite-router-data"
 HOST = "127.0.0.1"
 
-[groups.mesh]
-daemons = ["chalcopyrite", "mimetite", "bornite"]
+# ============================================================================
+# LOCAL SILICON LANE — llama-swap on RTX 3090 (qwen2.5-3b, :25196, no cap)
+# ============================================================================
 
-# Monolith copy dropped 2026-10-29 (partition): geode's own definition above is
-# live truth. mise = true note stands (anomaly #43 class): `mise x` exits 2 in
-# dirs without toolchain activation, killing the daemon pre-bind; serve.sh execs
-# an absolute release binary, so mise adds nothing here.
-# 2026-10-29: the former [daemons.mimetite.monolith-note] sub-table was a
-# phantom daemon registration (pitchfork parsed it as a second daemon), and
-# `run` was `exec ./products/mimetite/proxy/serve.sh` while `dir` already
-# pointed at the proxy — the doubled path `proxy/products/...` ENOENT'd every
-# start (exit 127). Fixed to `exec ./serve.sh`.
+[daemons.bornite-local-lane]
+run = "exec /home/toxic/pens/geode/products/mimetite/bornite-local-lane.sh"
+auto = ["start"]
+retry = true
+ready_http = "http://127.0.0.1:25196/health"
+port = 25196
+expected_port = [25196]
+dir = "/home/toxic/pens/geode/products/mimetite"
+mise = true
+[daemons.bornite-local-lane.health_http]
+url = "http://127.0.0.1:25196/health"
+interval = "30s"
+timeout = "5s"
+retries = 3
+[daemons.bornite-local-lane.env]
+LOCAL_LANE_PORT = "25196"
+
+# ============================================================================
+# UI & COMPLETIONS — Dev server + pens completions API
+# ============================================================================
+
+[daemons.mimetite-ui]
+run = "exec /home/toxic/pens/geode/products/mimetite/ui/node_modules/.bin/vite --port 25280 --host 0.0.0.0"
+auto = ["start"]
+retry = true
+ready_http = "http://127.0.0.1:25280/ui/"
+port = 25280
+expected_port = [25280]
+dir = "/home/toxic/pens/geode/products/mimetite/ui"
+mise = true
+
+[daemons.pens-completions]
+run = "exec /home/toxic/.bun/bin/bun /home/toxic/pens/geode/products/pens-completions/server.ts"
+auto = ["start"]
+retry = true
+ready_http = "http://127.0.0.1:25252/health"
+port = 25252
+boot_start = true
+dir = "/home/toxic/pens/geode/products/pens-completions"
+[daemons.pens-completions.env]
+PENS_COMPLETIONS_PORT = "25252"
+MIMETITE_ORIGIN = "http://127.0.0.1:25193"
+
+# ============================================================================
+# STANDALONE — Optional toolcall-llm (beellama.cpp CUDA build, Qwen3.5-9B)
+# ============================================================================
 
 [daemons.toolcall-llm]
 # 2026-10-27: the llama.cpp-b11059 build is stale against its own libs
@@ -98,35 +140,18 @@ dir = "/home/toxic/pens/llama/bin/beellama"
 mise = true
 boot_start = false
 
+# ============================================================================
+# GROUPS — Logical daemon collections
+# ============================================================================
 
-[daemons.pens-completions]
-run = "exec /home/toxic/.bun/bin/bun /home/toxic/pens/geode/products/pens-completions/server.ts"
-auto = ["start"]
-retry = true
-ready_http = "http://127.0.0.1:25252/health"
-port = 25252
-boot_start = true
-dir = "/home/toxic/pens/geode/products/pens-completions"
-[daemons.pens-completions.env]
-PENS_COMPLETIONS_PORT = "25252"
-MIMETITE_ORIGIN = "http://127.0.0.1:25193"
+[groups.mesh]
+daemons = ["chalcopyrite", "mimetite", "bornite"]
+description = "Core inference plane: cloud router + local GPU plane + model catalog"
 
-# bornite-local-lane (2026-11-12): the first-class LOCAL silicon lane (llama-swap).
-# qwen2.5-3b on RTX 3090, :25196, NO cap. Local-first router default; cloud only
-# on latency budget. Replaces hand-started llama-server with a managed daemon.
-[daemons.bornite-local-lane]
-run = "exec /home/toxic/pens/geode/products/mimetite/bornite-local-lane.sh"
-auto = ["start"]
-retry = true
-ready_http = "http://127.0.0.1:25196/health"
-port = 25196
-expected_port = [25196]
-dir = "/home/toxic/pens/geode/products/mimetite"
-mise = true
-[daemons.bornite-local-lane.health_http]
-url = "http://127.0.0.1:25196/health"
-interval = "30s"
-timeout = "5s"
-retries = 3
-[daemons.bornite-local-lane.env]
-LOCAL_LANE_PORT = "25196"
+[groups.ui]
+daemons = ["mimetite-ui", "pens-completions"]
+description = "Development UI and completions API"
+
+[groups.all]
+daemons = ["chalcopyrite", "mimetite", "bornite", "bornite-local-lane", "mimetite-ui", "pens-completions", "toolcall-llm"]
+description = "All geode daemons"

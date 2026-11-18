@@ -1,0 +1,41 @@
+# bunfig.toml — maximal Pens scaffold defaults, applied to forensia.
+# Proven patterns borrowed from oh-my-pi + vendored/bun + DelendAI.
+
+telemetry = false
+
+[install]
+exact = true
+linker = "hoisted"
+saveTextLockfile = true
+minimumReleaseAge = 259200 # 3 days supply-chain window
+minimumReleaseAgeExcludes = [
+  "@types/bun",
+  "bun-types",
+  "typescript",
+  "zod",
+  "@modelcontextprotocol/sdk",
+]
+
+[loader]
+".md" = "text"
+".py" = "text"
+
+[test]
+coverage = true
+pathIgnorePatterns = [
+  "**/node_modules/**",
+  "**/.git/**",
+  "**/dist/**",
+  "docs/**",
+  "reports/**",
+]
+
+[coverage]
+lines = 90
+functions = 90
+statements = 90
+branches = 70
+reporter = "text"
+
+[run]
+bun = true
